@@ -4,6 +4,7 @@ package org.spring.springboot.controller;
 import org.spring.springboot.algorithmn.GA.AGV_GA;
 import org.spring.springboot.algorithmn.preprocess.PreprocessData;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,18 +17,23 @@ import java.util.Map;
 @RestController
 public class GeneticAlogrithmControll {
     private final int MAX_EDGE = 999999;
+
     @RequestMapping(value = "/api/genetic", method = RequestMethod.POST)
-    public ModelMap findOneCity(Map payload) {
+    public ModelMap genetic(@RequestBody Map payload) {
+        System.out.println(payload.size());
+        Map map = (Map)payload.get("data");
         PreprocessData preprocessData = new PreprocessData();
-        Map data = (Map)payload.get("data");
+
         Matrix graph = preprocessData.createGraphFromJson
-                ((List<Map>) data.get("startNode"),(List<Map>)data.get("endNode"),(List<Map>)data.get("nodeDistance")
-                        ,(Integer) data.get("numberOfGraphNode"),MAX_EDGE);
-        Integer[][] tasks = preprocessData.getTasksFromJson((List<Map>)data.get("tasks"));
-        Double[] timeAlreadyPass = preprocessData.getTimeFromJson((List<Map>)data.get("time"));
-        List<List<Integer>> AGVs = preprocessData.getPaths((List<List<Map>>)data.get("paths"));
-        List<List<Integer>> bufferSet = preprocessData.getPaths((List<List<Map>>)data.get("bufferSet"));
-        Integer [] bufferForAGV = preprocessData.getBufferForAGVFromJson((List<Map>)data.get("bufferForAGV"));
+                ((List<Map>) map.get("startNode"),(List<Map>)map.get("endNode"),(List<Map>)map.get("nodeDistance")
+                        ,(Integer)map.get("numberOfGraphNode"),MAX_EDGE);
+        Integer[][] tasks = preprocessData.getTasksFromJson((List<Map>)map.get("tasks"));
+        Double[] timeAlreadyPass = preprocessData.getTimeFromJson((List<Map>)map.get("time"));
+        List<List<Integer>> AGVs = preprocessData.getPaths((List<List<Map>>)map.get("paths"));
+        List<List<Integer>> bufferSet = preprocessData.getPaths((List<List<Map>>)map.get("bufferSet"));
+        Integer [] bufferForAGV = preprocessData.getBufferForAGVFromJson((List<Map>)map.get("bufferForAGV"));
+        double AGVSpeed = preprocessData.getDoubleData(map.get("speed"));
+        double min_distance = preprocessData.getDoubleData(map.get("precision"));
 
         System.out.print("测试图"+graph);
         System.out.println("任务路线"+Matrix.Factory.importFromArray(tasks));
@@ -35,7 +41,12 @@ public class GeneticAlogrithmControll {
         System.out.println("小车路径"+AGVs);
         System.out.println("buffer路径"+bufferSet);
         System.out.println("小车所归属的buffer"+Matrix.Factory.importFromArray(bufferForAGV));
+        System.out.println("小车速度"+AGVSpeed+" 地图精度"+min_distance);
 
+        AGV_GA agv_ga = new AGV_GA(graph,tasks,timeAlreadyPass,AGVs,AGVSpeed,min_distance,bufferSet,bufferForAGV);
+
+
+//
 //        Matrix testGraph = Matrix.Factory.ones(6,6);
 //        testGraph = testGraph.times(MAX_EDGE);
 //        testGraph.setAsInt(4,0,3);
@@ -52,9 +63,9 @@ public class GeneticAlogrithmControll {
 //        testGraph.setAsInt(4,1,2);
 //        testGraph.setAsInt(4,5,4);
 //        testGraph.setAsInt(6,5,3);
-
-
-
+//
+//
+//
 //        List<List<Integer>> bufferSet = new ArrayList<List<Integer>>();
 //        Integer[] bufferForAGV = {0,1,1};
 //        List<Integer> bufferPath = new ArrayList<Integer>();
@@ -94,16 +105,16 @@ public class GeneticAlogrithmControll {
 //        AGVs.add(position3);
 //        //两个车都闲着
 //        Double[] timeAlreadyPass = {1.2,-1.0,-1.0};
+//
+//
+//
+//        //调用算法计算路径
+//        AGV_GA agv_ga = new AGV_GA(testGraph,tasks,timeAlreadyPass,AGVs,2,1,bufferSet,bufferForAGV);
 
 
 
-        //调用算法计算路径
-        AGV_GA agv_ga = new AGV_GA(graph,tasks,timeAlreadyPass,AGVs,0.5,1,bufferSet,bufferForAGV);
+
         List<List<Integer>> paths = agv_ga.hibridMultiObjectGenericAlgorithm();
-
-
-
-
         //将path组成对应的json格式
         ModelMap modelMap = new ModelMap();
         //所有小车的总路径
@@ -114,9 +125,14 @@ public class GeneticAlogrithmControll {
             ArrayList<ModelMap> pathsForAGV = new ArrayList<ModelMap>();
             for (Integer node: pathForAGV) {
                 ModelMap modelMapForAGV = new ModelMap();
-                modelMapForAGV.addAttribute("path",node);
+                //前端节点从1开始
+                modelMapForAGV.addAttribute("path",node+1);
                 pathsForAGV.add(modelMapForAGV);
             }
+            //末尾添加-1作为结束标志
+            ModelMap modelMapForAGV = new ModelMap();
+            modelMapForAGV.addAttribute("path",-1);
+            pathsForAGV.add(modelMapForAGV);
             pathModelMap.add(pathsForAGV);
         }
         return modelMap;

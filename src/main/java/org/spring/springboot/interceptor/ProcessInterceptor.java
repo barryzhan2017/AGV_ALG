@@ -14,7 +14,6 @@ public class ProcessInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o) throws Exception {
-        System.out.println("aaa");
 
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
 
@@ -28,7 +27,6 @@ public class ProcessInterceptor extends HandlerInterceptorAdapter {
 
 
         String method= httpServletRequest.getMethod();
-        System.out.println("bbb");
         if (method.equals("OPTIONS")){
             httpServletResponse.setStatus(200);
             return false;
