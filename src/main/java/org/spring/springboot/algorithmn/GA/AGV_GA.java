@@ -12,6 +12,7 @@ public class AGV_GA {
     private FuzzyControlLogic fuzzyControlLogic = new FuzzyControlLogic();//用来改变交叉和变异的概率
     private PathImprovement pathImprovement = new PathImprovement();//用来替换掉一些较差的路径
     private ReturnPathPlanning returnPathPlanning = new ReturnPathPlanning();//让车子运行完回归buffer的算法
+    private ConflictAvoid conflictAvoid;//用来计算撞击的次数，以此来改变适应度值
     private Integer[][] tasks; // 每一行表示一个未完成任务，第一列表示起始节点，第二列是终止节点
     private Double[] timeAlreadyPassing; //表示每个车已经运行了多长时间在这个道路上，-1表示车已经闲置
     private Double[] timeForFinishingTasks;//用来存储车辆还需要多久完成当前任务
@@ -49,11 +50,13 @@ public class AGV_GA {
     private double currentMeanDistanceVariation = 0;//上一代平均适应度减去这一代平均适应度
     private double previousMeanDistanceVariation = 0;//上上一代平均适应度减去上一代平均适应度
     private final int MAX_EDGE = 999999;
-    private final int INITIAL_POPULATION = 30;//初始子代个数
+    private final int INITIAL_POPULATION = 100;//初始子代个数
     private final int MIN_GENERATION = 50;//最少进化次数
     private final int MAX_GENERATION = (int)(MIN_GENERATION*1.5);//最多进化次数
     private final double PENALTY_FOR_CONFLICT = 999;//小车要是碰撞一次就有距离上的惩罚
-    private final double SAFE_DISTANCE = 1;//1m为小车间的安全距离
+    private final double SAFE_DISTANCE = minDistance*0.7;//1m为小车间的安全距离
+    // 注意安全距离要小于两个车子的最小时间行驶距离之和保证相向碰撞计算可靠
+    // 且保证小于最小距离*根号2，这样朝点的碰撞也不会重复计算，（两个车必须都在最小距离之内才计算）
     private final double RELATIVE_ERROR = 0.001;//收敛的相对误差，小于这个则表示稳定
 
     public AGV_GA() {
@@ -84,10 +87,12 @@ public class AGV_GA {
         initializeAGVPopulation();
 //        System.out.println("已经经过的时间"+Matrix.Factory.importFromArray(timeForFinishingTasks));
         minTime = minDistance/AGVSpeed;
+        conflictAvoid = new ConflictAvoid(AGVSpeed, AGVNumber, timeAlreadyPassing,
+                minTime, minDistance, PENALTY_FOR_CONFLICT, SAFE_DISTANCE, graph, bufferSet, bufferForAGV);
     }
 
     //任务分配的任务优先级按传人的先后顺序
-    public List<List<Integer>> singleObjectGenericAlgorithm() {
+    public List<List<Integer>> singleObjectGenericAlgorithm(List<List<AGVRecord>> bestGenRecords) {
 
 
         //记录有多少次前后子代平均适应度函数稳定
@@ -259,7 +264,7 @@ public class AGV_GA {
             System.out.println("当前子代数：" + populationGen);
 
             //计算fitness，对出现碰撞的规划增加penalty，碰撞越多penalty越大
-            conflictAvoid(localAGVPaths, localAGVFitness);
+            conflictAvoid.conflictAvoid(localAGVPaths, localAGVFitness);
 
             //将子代和父代和在一块
             AGVFitness.addAll(localAGVFitness);
@@ -344,7 +349,7 @@ public class AGV_GA {
                 //计算当代的适应度
                 currentMeanFitness += adjustFitness[j];
             }
-            System.out.println("adjust:"+Matrix.Factory.importFromArray(adjustFitness));
+//            System.out.println("adjust:"+Matrix.Factory.importFromArray(adjustFitness));
             //当前子代求平均值,以及平均距离
             currentMeanFitness /= populationGen;
             currentMeanDistance /= populationGen;
@@ -412,6 +417,7 @@ public class AGV_GA {
                 maxFitnessGeneration = i;
             }
         }
+        bestGenRecords.addAll(AGVRecords.get(maxFitnessGeneration));
         System.out.println(AGVRecords.get(maxFitnessGeneration));
         System.out.println("最佳路径" + AGVPaths.get(maxFitnessGeneration)+" 它的适应度" + adjustFitness[maxFitnessGeneration]
                 +"它的距离" + 1/adjustFitness[maxFitnessGeneration]);
@@ -621,229 +627,11 @@ public class AGV_GA {
         }
     }
 
-    //1.将未规划入buffer的车子先规划到buffer入口，调整对应time，path，record，fitness等
-    //2.计算出每个buffer中到达入口的时间，主要是把已经进入buffer的时间扣掉那些进入部分的时间
-    //3.选取最小的时间的车，让它规划到buffer的最深处（将当前路径延伸过去），以此类推，先前规划的已经有进入buffer的路径只有可能增加，之前的规划的是对的
-    //将闲置在搬货区域的车强制开回buffer中，并且计算额外的适应度，startIndex是从priChromosome的什么位置开始, i表示第几代
-    private void returnAGVToBuffer(List<List<Integer>> generationForAGVPaths,
-                                   double[] fitness, Integer[][] priChromosome, int startIndex, double[] AGVTime, List<List<AGVRecord>> AGVRecord) {
-        int bufferNumber = bufferSet.size();
-        //找到每个buffer中没有回去和回去的AGV存到下面，初始化全是-1
-        int[][] unreturnedAGVs = new int[bufferNumber][AGVNumber];
-        for (int i = 0; i < bufferNumber; i++) {
-            for (int j = 0; j < AGVNumber; j++) {
-                unreturnedAGVs[i][j] = -1;
-            }
-        }
-        //记录第几个车
-        int count = 0;
-        //记录，每个buffer被占用的个数
-        Integer[] occupiedNumberForBuffer = new Integer[bufferNumber];
-        for (int i = 0; i < bufferNumber; i++) {
-            occupiedNumberForBuffer[i] = 0;
-        }
-        for (List<Integer> path : generationForAGVPaths) {
-            //获取第count俩车的buffer图
-            List<Integer> buffer = bufferSet.get(bufferForAGV[count]);
-            //小车的最后一步
-            int endPoint = path.get(path.size() - 1);
-            //如果小车没有停到了buffer里头,给该buffer中记录该小车没回去,反之是记录进去
-            if (buffer.contains(endPoint) && buffer.get(buffer.size() - 1) != endPoint && buffer.get(0) != endPoint) {
-               occupiedNumberForBuffer[bufferForAGV[count]]++;
-            }
-            else {
-                //将未回buffer的车的编号存入unreturnedAGV对应的buffer行中
-                int k = 0;
-                while (unreturnedAGVs[bufferForAGV[count]][k] != -1 && k < AGVNumber) {
-                    k++;
-                }
-                unreturnedAGVs[bufferForAGV[count]][k] = count;
-            }
-            count++;
-        }
-        //转换类型成Double数组
-        Double [] DoubleAGVTime = new Double[AGVTime.length];
-        for (int i = 0; i < AGVTime.length; i++) {
-            DoubleAGVTime[i] = AGVTime[i];
-        }
-        //先将每个车开回他们的buffer的入口点，计算时间加入DoubleAGVTime，也计算了fitness
-        for (int i = 0; i < bufferNumber; i++) {
-            for (int j = 0; j < AGVNumber; j++) {
-                //如果没车了
-                if (unreturnedAGVs[i][j] == -1) {
-                    break;
-                }
-                else {
-                    //找到该AGV位置处的优先染色体（startIndex+AGVIndex）
-                    int AGVIndex = unreturnedAGVs[i][j];
-                    //当前车辆的路径
-                    List<Integer> AGVPath = generationForAGVPaths.get(AGVIndex);
-                    //该路的初始节点在小车路径中的索引
-                    int pathStartIndex = AGVPath.size()-1;
-                    double[] path = feasiblePathGrowth.feasiblePathGrowth(
-                            AGVPath.get(pathStartIndex),
-                            bufferSet.get(i).get(0),priChromosome[startIndex+AGVIndex]);
-                    int pathLength = path.length;
-                    for (int k = 1; (int) path[k] != -1 && k < pathLength - 1; k++) {
-                        //结束了路径
-                        AGVPath.add((int) path[k]);
-                    }
-                    int pathEndIndex = AGVPath.size()-1;
-                    double distance = path[pathLength-1];
-                    AGVRecord.get(AGVIndex).add(new AGVRecord(pathStartIndex,pathEndIndex,AGVPath.get(pathStartIndex),
-                            bufferSet.get(i).get(0),distance,startIndex+AGVIndex,true));
-                    DoubleAGVTime[AGVIndex] += distance/AGVSpeed;
-                    fitness[AGVIndex] += distance;
-                }
-            }
-        }
-
-        //依据时间较小的车在数组前面给每个小车排序，排除了-1的问题
-        for (int i = 0; i < bufferNumber; i++) {
-            GenericSortAlgorithm.insertSort(unreturnedAGVs[i],DoubleAGVTime);
-        }
-        //时间较小的车开到在buffer的靠出口位置
-        for (int i = 0; i < bufferNumber; i++) {
-            for (int j = 0; j < AGVNumber; j++) {
-                //如果没车了
-                if (unreturnedAGVs[i][j] == -1) {
-                    break;
-                }
-                //把车开总点数-（已经占用个数+2）次,增加占用个数, 调整fitness
-                else {
-                    int AGVIndex = unreturnedAGVs[i][j];
-                    for (int k = 1; k <= bufferSet.get(i).size() - occupiedNumberForBuffer[i] -2; k++ ) {
-                        generationForAGVPaths.get(AGVIndex).add(bufferSet.get(i).get(k));
-                        fitness[AGVIndex] += minDistance;
-                    }
-                    occupiedNumberForBuffer[i]++;
-                }
-            }
-        }
-
-    }
 
 
 
-    //按照最小时间精度遍历，出现碰撞给该方案的距离和加上一次惩罚值，二次则两倍
-    private void conflictAvoid(List<List<List<Integer>>> AGVPaths, List<double[]> AGVFitness) {
-        //首先，将当前小车的timeAlreadyPassing列表，和路径一块存。
-        //每一个子代的每个车的前两个路径加上时间，如 [3][0,2,3.2] 表示车3在0到2的路上，已经开了3.2秒了
-        List<double[][]> futurePaths = new ArrayList<double[][]>();
-        for (int i = 0; i < AGVPaths.size(); i++) {
-            double[][] futurePath = new double[AGVNumber][3];
-            for (int j = 0; j < AGVNumber; j++) {
-                    //如果小车没有分配任务且闲置状态 [-1,-1,-1]
-                    if (AGVPaths.get(i).get(j).size() == 1) {
-                        futurePath[j][0] = -1;
-                        futurePath[j][1] = -1;
-                        futurePath[j][2] = -1;
-                    }
-                    else {
-                        //初始化车辆的行驶信息
-                        futurePath[j][0] = AGVPaths.get(i).get(j).get(0);
-                        futurePath[j][1] = AGVPaths.get(i).get(j).get(1);
-                        //闲置小车初始时间为0
-                        if (timeAlreadyPassing[j] == -1) {
-                            futurePath[j][2] = 0;
-                        }
-                        else {
-                            futurePath[j][2] = timeAlreadyPassing[j];
-                        }
-                    }
-            }
-            futurePaths.add(futurePath);
-        }
-        //记录是第几个子代
-        int count = 0;
-        //对每个子代进行conflict检测
-        for (double[][] futurePath: futurePaths) {
-            //记录到路径上的第几个位置（index),初始是从第二个点开始
-            Matrix index = Matrix.Factory.ones(1,AGVNumber);
-            index = index.times(2);
-            //判断是否所有车辆都在跑
-            boolean AGVrunning = true;
-            //最小的时间步长
-            double timeStep = minTime;
-            while (AGVrunning) {
-                AGVrunning = false;
-                //对每个小车的后面排列的小车进行路径对比，分为线上会车和点上会车
-                for (int j = 0; j < AGVNumber; j++) {
-                    //如果小车是停滞的小车就不管它
-                    if (futurePath[j][0]==-1) {
-                        continue;
-                    }
-                    //有车子在跑
-                    AGVrunning = true;
-                    //j车正在走的路的长度
-                    double ongoingPathLength = getAGVOngoingPathLength(j,futurePath);
-                    for (int k = j+1; k < AGVNumber; k++) {
-                        //如果小车是停滞的小车就不管它
-                        if (futurePath[k][0]==-1) {
-                            continue;
-                        }
-                        //k车正在走的路的长度
-                        double ongoingPathLength1 = getAGVOngoingPathLength(k,futurePath);
-                        //对线上回车情况进行讨论，若两车在相向而走，且两车距离之和经历小于路长到大于路长，则判定为一次碰撞,增加惩罚值
-                        //第一个等式取等 会造成二次计算 所以不取
-                        if (futurePath[j][0] == futurePath[k][1] && futurePath[j][1] == futurePath[k][0]
-                                && ongoingPathLength > futurePath[j][2]*AGVSpeed + futurePath[k][2]*AGVSpeed
-                                && ongoingPathLength <= futurePath[j][2]*AGVSpeed + futurePath[k][2]*AGVSpeed + minDistance*2) {
-                            AGVFitness.get(count)[j] += PENALTY_FOR_CONFLICT;
-                            AGVFitness.get(count)[k] += PENALTY_FOR_CONFLICT;
-                            //用来检测碰撞情况是否属实
-                       //     printErrorOnLine(j,k,futurePath,ongoingPathLength,ongoingPathLength1);
-                        }
 
-                        //对在点附近撞车的情况考虑，若两车朝点而开，两车对点的距离都不得小于安全距离
-                        //若是一车朝点开，一车离开点，两车与点的距离之和小于安全距离，为碰撞,给上惩罚
-                        //两车都离开点的情况已经被第一条考虑过了，若两个车一直紧密挨着走会被多次计算惩罚
-                        else if ((futurePath[j][0] == futurePath[k][1] &&
-                                ongoingPathLength1 - futurePath[k][2]*AGVSpeed + futurePath[j][2]*AGVSpeed < SAFE_DISTANCE)
 
-                                || (futurePath[j][1] == futurePath[k][0]
-                                && ongoingPathLength - futurePath[j][2]*AGVSpeed + futurePath[k][2]*AGVSpeed < SAFE_DISTANCE)
-
-                                || (futurePath[j][1] == futurePath[k][1] && ongoingPathLength - futurePath[j][2]*AGVSpeed < SAFE_DISTANCE
-                                && ongoingPathLength1 - futurePath[k][2]*AGVSpeed < SAFE_DISTANCE)) {
-
-                            AGVFitness.get(count)[j] += PENALTY_FOR_CONFLICT;
-                            AGVFitness.get(count)[k] += PENALTY_FOR_CONFLICT;
-                         //   printErrorOnPoint(j,k,futurePath,ongoingPathLength,ongoingPathLength1);
-                        }
-                    }
-                    //如果小车要换路走了且小车还能往前走,则改变小车的状态,不会影响后面小车的判断
-                    if ((timeStep + futurePath[j][2])*AGVSpeed >= ongoingPathLength
-                            && index.getAsInt(0,j) < AGVPaths.get(count).get(j).size()) {
-                        futurePath[j][0] = futurePath[j][1];
-                        //如果下一步的点和当前的一样则调到下下步,路径的索引得加2
-                        int nextStep = AGVPaths.get(count).get(j).get(index.getAsInt(0,j));
-                        if (nextStep==futurePath[j][1]) {
-                            futurePath[j][1] = AGVPaths.get(count).get(j).get(index.getAsInt(0,j)+1);
-                            index.setAsInt(index.getAsInt(0,j)+2,0,j);
-                        }
-                        else {
-                            futurePath[j][1] = nextStep;
-                            index.setAsInt(index.getAsInt(0,j)+1,0,j);
-                        }
-                        futurePath[j][2] = (timeStep + futurePath[j][2])*AGVSpeed - ongoingPathLength;
-                    }
-                    //如果小车要换路走了且小车走到停靠点了，则让小车停滞
-                    else if ((timeStep + futurePath[j][2])*AGVSpeed >= ongoingPathLength
-                            && index.getAsInt(0,j) == AGVPaths.get(count).get(j).size()) {
-                        futurePath[j][0] = -1;
-                        futurePath[j][1] = -1;
-                        futurePath[j][2] = -1;
-                    }
-                    //还在路上开，增加时间
-                    else {
-                        futurePath[j][2] += timeStep;
-                    }
-                }
-            }
-            count++;
-        }
-    }
 
 //    private void printErrorOnLine(int j, int k, double[][] futurePath, double ongoingPathLength, double ongoingPathLength1) {
 //        System.out.println("第"+j+"辆车和"+"第"+k+"辆车发生在线上的碰撞");
@@ -896,6 +684,16 @@ public class AGV_GA {
             if (timeAlreadyPassing[i]==-1) {
                 timeForFinishingTasks[i] = (double)0;
             }
+            //将所有小车的时间推到最小时间精度再开始计算系统路径规划，便于避撞
+            //这样无论是不是第一次启动系统或者是新加任务再开始系统，每个小车移动一个最小时间都在最小精度上
+            else {
+                int k = 0;
+                while (k*minTime < timeAlreadyPassing[i]) {
+                    k++;
+                }
+                timeAlreadyPassing[i] = k*minTime;
+            }
+
         }
 
         for (int i = 0; i < AGVNumber; i++) {

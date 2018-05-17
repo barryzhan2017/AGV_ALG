@@ -18,11 +18,6 @@ import static org.junit.Assert.assertNotEquals;
 @SpringBootTest(classes = Application.class)
 public class RecordTest {
 
-    @Test
-    public void testRunning() {
-        System.out.println("testingRecord is testing!");
-    }
-
     //test if two records are equal to each other if  the start and end index are the same
     @Test
     public void testRecordWithSameStartIndexAndEndIndexEqualsTo() {

@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = Application.class)
 @RunWith(Suite.class)
-@Suite.SuiteClasses({RecordTest.class, PathImprovementTest.class, ReturnPathPlanningTest.class})
+@Suite.SuiteClasses({RecordTest.class, PathImprovementTest.class, ReturnPathPlanningTest.class,ConflictAvoidTest.class})
 public class TestAll {
 
 }

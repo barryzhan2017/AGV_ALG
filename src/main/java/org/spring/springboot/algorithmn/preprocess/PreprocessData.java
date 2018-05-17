@@ -3,6 +3,7 @@ package org.spring.springboot.algorithmn.preprocess;
 import org.ujmp.core.Matrix;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,9 @@ public class PreprocessData {
         for (int i = 0; i < size; i++) {
             String pathString = (String)tasksList.get(i).get("tasks");
             //对将限定的数量的task放入tasks中
-            for (int j = 0; j < Integer.valueOf(pathString.split(",")[2]); j++) {
+            //多少个任务
+            int taskNumber = Integer.valueOf(pathString.split(",")[2]);
+            for (int j = 0; j < taskNumber; j++) {
                 Integer[] subTask = new Integer[2];
                 subTask[0] = Integer.valueOf(pathString.split(",")[0])-1;
                 subTask[1] = Integer.valueOf(pathString.split(",")[1])-1;
@@ -108,5 +111,23 @@ public class PreprocessData {
             doubleData = (Double) numberObject;
         }
         return doubleData;
+    }
+
+    //将真实的任务序号和生成的子任务序号建立map联系
+    public HashMap<Integer,Integer> getTaskMap(List<Map> tasks) {
+        HashMap<Integer,Integer> taskMap = new HashMap<Integer, Integer>();
+        int size = tasks.size();
+        int currentTaskNumber = 0;
+        for (int i = 0; i < size; i++) {
+            String pathString = (String)tasks.get(i).get("tasks");
+            //多少个任务
+            int taskNumber = Integer.valueOf(pathString.split(",")[2]);
+            for (int j = 0; j < taskNumber; j++) {
+                //任务编号得减一
+                taskMap.put(currentTaskNumber+j, i);
+            }
+            currentTaskNumber += taskNumber;
+        }
+        return taskMap;
     }
 }
