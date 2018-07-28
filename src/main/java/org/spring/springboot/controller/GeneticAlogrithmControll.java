@@ -25,8 +25,8 @@ public class GeneticAlogrithmControll {
         PreprocessData preprocessData = new PreprocessData();
 
         Matrix graph = preprocessData.createGraphFromJson
-                ((List<Map>) map.get("startNode"),(List<Map>)map.get("endNode"),(List<Map>)map.get("nodeDistance"),9,
-              //          ,(Integer)map.get("numberOfGraphNode"),
+                ((List<Map>) map.get("startNode"),(List<Map>)map.get("endNode"),(List<Map>)map.get("nodeDistance")
+                        ,(Integer)map.get("numberOfGraphNode"),
                         MAX_EDGE);
         Integer[][] tasks = preprocessData.getTasksFromJson((List<Map>)map.get("tasks"));
         Double[] timeAlreadyPass = preprocessData.getTimeFromJson((List<Map>)map.get("time"));
