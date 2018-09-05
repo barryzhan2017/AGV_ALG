@@ -38,6 +38,8 @@ public class ConflictAvoid {
         nodeNumber = (int)graph.getSize()[0];
     }
 
+
+
     //按照最小时间精度遍历，出现碰撞给该方案的距离和加上一次惩罚值，二次则两倍
     public void conflictAvoidStrategy(List<List<List<Integer>>> AGVPaths, List<double[]> AGVFitness) {
         //每个子代的小车的当前路径和移动了多久
