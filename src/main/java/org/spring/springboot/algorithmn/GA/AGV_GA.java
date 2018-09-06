@@ -22,6 +22,7 @@ public class AGV_GA {
     private List<Double[]> taskDistribution;//任务分配的个体
     private List<Integer[][]> priorityChromosomeSet;//详细路径的个体，从当前位置到取货点，以及从取货点到放货点,每一个task都有一个染色体
     private List<List<List<AGVRecord>>> AGVRecords = new ArrayList<List<List<AGVRecord>>>();//每个子代的每个车都有一个行车记录，！！暂时先重新开始计算新生成的部分！！
+    //path at least contain one node indicating the static position
     private List<List<List<Integer>>> AGVPaths = new ArrayList<List<List<Integer>>>(); //每一个子代的每一个车的路径
     private List<double[]> AGVTimes = new ArrayList<double[]>(); //每一个子代的已经过去的时间
     private List<double[]> AGVFitness = new ArrayList<double[]>(); //初始化每一个子代的每个车的适应度
@@ -673,7 +674,7 @@ public class AGV_GA {
     }
 
     // 初始化每个AGV计算还需要多长时间小车完成任务
-    // 计算时间包括AGV到buffer中停靠点已经从停靠点到buffer和graph交点的时间
+    // 计算时间包括AGV到buffer中停靠点以及从停靠点到buffer和graph交点的时间
     private void initiateTimeLeftForFinishingTasks() {
         //初始化剩余时间数组
         for (int i = 0; i < timeForFinishingTasks.length; i++) {

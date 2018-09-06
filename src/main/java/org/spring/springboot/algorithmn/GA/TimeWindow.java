@@ -1,6 +1,7 @@
 package org.spring.springboot.algorithmn.GA;
 
 import org.apache.poi.ss.formula.functions.T;
+import org.spring.springboot.algorithmn.GA.common.DistanceCalculation;
 import org.ujmp.core.Matrix;
 
 import java.util.ArrayList;
@@ -15,8 +16,10 @@ public class TimeWindow {
     //Generate time window of AGVs by analysing each timing to get on a node
     public List<List<TimeNode>> generateTimeWindow(List<List<List<Integer>>> AGVPaths, double AGVSpeed, Double[][] graph,
                                                    Double[] timeAlreadyPassing, Double minDistance) {
-        timeWindow = new ArrayList<List<TimeNode>>();
+        List<List<TimeNode>> timeWindow = new ArrayList<List<TimeNode>>();
 
+        //TimeAlreadyPassing can be -1 meaning the AGV is static,
+        // path at least contain one node indicating the static position
         for (List<List<Integer>> paths : AGVPaths) {
             for (List<Integer> path : paths) {
                 // One AGV Time window
@@ -24,14 +27,20 @@ public class TimeWindow {
                 int AGVIndex = timeWindow.size();
                 int numberOfNode = 0;
                 for (Integer node: path) {
-                    double time = 0;
+                    TimeNode timeNode = null;
+                    double timeToGetToNode = 0;
+                    double drivingDistance = 0;
+                    //need to consider -1 and one node condition
                     //The first step for AGV should have a initial time
                     if (numberOfNode == 0) {
-                    time = timeAlreadyPassing[AGVIndex];
+                        drivingDistance = DistanceCalculation.calculateDrivingDistance(graph, path.get(numberOfNode),
+                                path.get(numberOfNode + 1),minDistance);
+                        timeToGetToNode = drivingDistance/AGVSpeed - timeAlreadyPassing[AGVIndex];
+
+                        timeNode = new TimeNode(time,)
                     }
                     else {
                         double previousTime = AGVTimeWindow.get(numberOfNode-1).getTime();
-                        double drivingDistance = 0;
                         // the node in the buffer
                         if ((graph[0].length-1) < numberOfNode) {
                             drivingDistance = minDistance;
@@ -42,7 +51,7 @@ public class TimeWindow {
                         double drivingTime =
                         time =  + graph.getSize()
                     }
-                    TimeNode timeNode = new TimeNode();
+
                     numberOfNode++;
                 }
             }
@@ -55,4 +64,6 @@ public class TimeWindow {
 
 
 
+
 }
+
