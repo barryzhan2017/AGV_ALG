@@ -43,7 +43,8 @@ public class PathImprovement {
     //改变当前的路径成较小的路径，并且更改相应染色体
     private void changeToShorterDistance(AGVRecord record, List<List<List<AGVRecord>>> localAGVRecord,
                                          int previousPopulationGen, List<List<List<Integer>>> localAGVPaths,
-                                         List<Integer[][]> priorityChromosomeSet,  int recordGen, int AGVNumber,int count) {
+                                         List<Integer[][]> priorityChromosomeSet,  int recordGen,
+                                         int AGVNumber,int count) {
         int AGVNum = localAGVRecord.get(0).size();
         for (int i = previousPopulationGen; i < localAGVRecord.size(); i++) {
             for (int j = 0; j < AGVNum; j++) {
@@ -91,7 +92,8 @@ public class PathImprovement {
 
 
     //将所有的子代的所有的车辆的所有record加入一个不重复的map之中,并且算出平均的距离放到value
-    public HashMap<AGVRecord,Double> initialize(List<List<List<AGVRecord>>> localAGVRecord, int previousPopulationGen) {
+    public HashMap<AGVRecord,Double> initialize(List<List<List<AGVRecord>>> localAGVRecord,
+                                                int previousPopulationGen) {
         //key是相同的record，value现在是出现次数
         HashMap<AGVRecord,Double> differentAGVRecordMap = new HashMap<AGVRecord,Double>();
         for (int i = previousPopulationGen; i < localAGVRecord.size(); i++) {
