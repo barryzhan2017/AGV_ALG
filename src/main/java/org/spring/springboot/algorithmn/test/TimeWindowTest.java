@@ -96,6 +96,7 @@ public class TimeWindowTest {
         List<TimeNode> timeSequence2 = timeWindow.getAGVTimeSequence(1);
 
         // AGV1
+        assertEquals(9,timeSequence1.size());
         assertEquals(105,timeSequence1.get(0).getNodeId());
         assertEquals((double)0,timeSequence1.get(0).getTime());
 
@@ -125,6 +126,7 @@ public class TimeWindowTest {
 
 
         // AGV2
+        assertEquals(2,timeSequence2.size());
         assertEquals(104,timeSequence2.get(0).getNodeId());
         assertEquals((double)0,timeSequence2.get(0).getTime());
 
@@ -166,7 +168,7 @@ public class TimeWindowTest {
         List<TimeNode> timeSequence2 = timeWindow.getAGVTimeSequence(1);
 
         // AGV1
-
+        assertEquals(7,timeSequence1.size());
         assertEquals(8,timeSequence1.get(0).getNodeId());
         assertEquals((double)4,timeSequence1.get(0).getTime());
 
@@ -190,7 +192,7 @@ public class TimeWindowTest {
 
 
         // AGV2
-
+        assertEquals(1,timeSequence2.size());
         assertEquals(105,timeSequence2.get(0).getNodeId());
         assertEquals(0.5,timeSequence2.get(0).getTime());
     }
