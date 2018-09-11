@@ -19,8 +19,6 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = Application.class)
 public class ReturnPathPlanningTest {
     private FeasiblePathGrowth feasiblePathGrowth;
     private List<List<AGVRecord>> agvRecord;

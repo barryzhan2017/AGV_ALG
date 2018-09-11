@@ -14,15 +14,14 @@ public class TimeWindow {
 
 
     //Generate time window of AGVs by analysing each timing to get on a node
-    public void generateTimeWindow(List<List<List<Integer>>> AGVPaths, double AGVSpeed,
+    public void generateTimeWindow(List<List<Integer>> AGVPaths, double AGVSpeed,
                                                    double[][] graph, Double[] timeAlreadyPassing,
                                                    Double minDistance) {
         List<List<TimeNode>> timeWindow = new ArrayList<List<TimeNode>>();
 
         //TimeAlreadyPassing can be -1 meaning the AGV is static,
         // path at least contains one node indicating the static position
-        for (List<List<Integer>> paths : AGVPaths) {
-            for (List<Integer> path : paths) {
+            for (List<Integer> path : AGVPaths) {
                 // One AGV Time window
                 List<TimeNode> AGVTimeWindow = new ArrayList<TimeNode>();
                 int AGVIndex = timeWindow.size();
@@ -44,7 +43,7 @@ public class TimeWindow {
                     if (numberOfTimeNode == 0) {
                         //Means AGV starts at a node
                         if (timeAlreadyPassing[AGVIndex] == -1) {
-                            timeNode = new TimeNode(0,node);
+                            timeNode = new TimeNode(0,node, 0);
                             AGVTimeWindow.add(timeNode);
 
                             //To syc by adding the next time node
@@ -53,7 +52,7 @@ public class TimeWindow {
                                     DistanceCalculation.calculateDrivingDistance(graph, node,
                                             nextNode, minDistance);
                             timeToGetToNode = drivingDistance/AGVSpeed;
-                            TimeNode nextTimeNode = new TimeNode(timeToGetToNode, nextNode);
+                            TimeNode nextTimeNode = new TimeNode(timeToGetToNode, nextNode, 1);
                             AGVTimeWindow.add(nextTimeNode);
                             numberOfTimeNode++;
                             continue;
@@ -64,7 +63,8 @@ public class TimeWindow {
                                 DistanceCalculation.calculateDrivingDistance(graph, node,
                                         nextNode, minDistance);
                         timeToGetToNode = drivingDistance/AGVSpeed - timeAlreadyPassing[AGVIndex];
-                        timeNode = new TimeNode(timeToGetToNode, nextNode);
+                        //This criteria the 0 step is ignored to correctly trace the step in the path
+                        timeNode = new TimeNode(timeToGetToNode, nextNode, 1);
                         AGVTimeWindow.add(timeNode);
                     }
                     else {
@@ -80,7 +80,7 @@ public class TimeWindow {
                                 DistanceCalculation.calculateDrivingDistance(graph, node,
                                         nextNode, minDistance);
                         timeToGetToNode = drivingDistance/AGVSpeed + previousDrivingTime;
-                        timeNode = new TimeNode(timeToGetToNode, nextNode);
+                        timeNode = new TimeNode(timeToGetToNode, nextNode, numberOfTimeNode + 1);
                         AGVTimeWindow.add(timeNode);
                     }
                     numberOfTimeNode++;
@@ -88,19 +88,28 @@ public class TimeWindow {
                 timeWindow.add(AGVTimeWindow);
             }
 
-        }
         this.timeWindow = timeWindow;
     }
 
+    //Used for test
     public List<TimeNode> getAGVTimeSequence(int index) {
         return timeWindow.get(index);
     }
 
+    public int size() {
+        return timeWindow.size();
+    }
 
-
-
-
-
-
+    //Check if any time nodes in i and j list of time nodes have same nodeId and time
+    public boolean containsSameTimeNode(int i, int j) {
+       for (TimeNode timeNode1 : timeWindow.get(i)) {
+           for (TimeNode timeNode2 : timeWindow.get(j)) {
+               if (timeNode1.equals(timeNode2)) {
+                   return true;
+               }
+           }
+       }
+       return false;
+    }
 }
 

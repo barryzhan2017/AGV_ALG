@@ -18,8 +18,7 @@ import java.util.List;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = Application.class)
+
 public class PathImprovementTest {
 
     List<List<List<AGVRecord>>> records;

@@ -5,10 +5,9 @@ import org.junit.runners.Suite;
 import org.spring.springboot.Application;
 import org.springframework.boot.test.context.SpringBootTest;
 
-
-@SpringBootTest(classes = Application.class)
 @RunWith(Suite.class)
-@Suite.SuiteClasses({RecordTest.class, PathImprovementTest.class, ReturnPathPlanningTest.class,ConflictAvoidTest.class})
+@Suite.SuiteClasses({RecordTest.class, PathImprovementTest.class,
+        ReturnPathPlanningTest.class, TimeWindowTest.class})
 public class TestAll {
 
 }

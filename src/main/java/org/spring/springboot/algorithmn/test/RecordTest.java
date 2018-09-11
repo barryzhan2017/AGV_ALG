@@ -14,8 +14,6 @@ import java.util.Iterator;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = Application.class)
 public class RecordTest {
 
     //test if two records are equal to each other if  the start and end index are the same
