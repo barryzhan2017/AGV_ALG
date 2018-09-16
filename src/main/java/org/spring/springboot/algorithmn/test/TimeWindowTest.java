@@ -23,7 +23,6 @@ import static junit.framework.TestCase.assertNull;
 public class TimeWindowTest {
 
     private double AGVSpeed = 2;
-    private Double[] timeAlreadyPass = {-1.0000,-1.0000,-1.0000,-1.0000};
     private double[][] graph;
     private double minDistance = 2;
 
@@ -40,16 +39,16 @@ public class TimeWindowTest {
     public void shouldTimeWindowCreateWithNullForAllStaticAGVsInBuffer() {
         TimeWindow timeWindow = new TimeWindow();
         Double[] timeAlreadyPassing = {-1.0,-1.0};
-        List<List<Integer>> AGVPaths = new ArrayList<List<Integer>>();
+        List<List<Double>> AGVPaths = new ArrayList<List<Double>>();
 
 
-        List<Integer> path1 = new ArrayList<Integer>();
-        path1.add(101);
+        List<Double> path1 = new ArrayList<Double>();
+        path1.add(101.0);
         AGVPaths.add(path1);
 
 
-        List<Integer> path2 = new ArrayList<Integer>();
-        path2.add(201);
+        List<Double> path2 = new ArrayList<Double>();
+        path2.add(201.0);
         AGVPaths.add(path2);
 
 
@@ -65,23 +64,23 @@ public class TimeWindowTest {
     public void shouldTimeWindowWorksForScenario1() {
         TimeWindow timeWindow = new TimeWindow();
         Double[] timeAlreadyPassing = {-1.0, -1.0};
-        List<List<Integer>> AGVPaths = new ArrayList<List<Integer>>();
+        List<List<Double>> AGVPaths = new ArrayList<List<Double>>();
 
-        List<Integer> path1 = new ArrayList<Integer>();
-        path1.add(105);
-        path1.add(7);
-        path1.add(8);
-        path1.add(1);
-        path1.add(0);
-        path1.add(101);
-        path1.add(102);
-        path1.add(103);
-        path1.add(104);
+        List<Double> path1 = new ArrayList<Double>();
+        path1.add(105.0);
+        path1.add(7.0);
+        path1.add(8.0);
+        path1.add(1.0);
+        path1.add(0.0);
+        path1.add(101.0);
+        path1.add(102.0);
+        path1.add(103.0);
+        path1.add(104.0);
         AGVPaths.add(path1);
 
-        List<Integer> path2 = new ArrayList<Integer>();
-        path2.add(104);
-        path2.add(105);
+        List<Double> path2 = new ArrayList<Double>();
+        path2.add(104.0);
+        path2.add(105.0);
         AGVPaths.add(path2);
 
         timeWindow.generateTimeWindow(AGVPaths,AGVSpeed,graph,timeAlreadyPassing,minDistance);
@@ -146,23 +145,23 @@ public class TimeWindowTest {
     public void shouldTimeWindowWorksForScenario2() {
         TimeWindow timeWindow = new TimeWindow();
         Double[] timeAlreadyPassing = {1.0, 0.5};
-        List<List<Integer>> AGVPaths = new ArrayList<List<Integer>>();
+        List<List<Double>> AGVPaths = new ArrayList<List<Double>>();
 
 
-        List<Integer> path1 = new ArrayList<Integer>();
-        path1.add(7);
-        path1.add(8);
-        path1.add(1);
-        path1.add(0);
-        path1.add(101);
-        path1.add(102);
-        path1.add(103);
-        path1.add(104);
+        List<Double> path1 = new ArrayList<Double>();
+        path1.add(7.0);
+        path1.add(8.0);
+        path1.add(1.0);
+        path1.add(0.0);
+        path1.add(101.0);
+        path1.add(102.0);
+        path1.add(103.0);
+        path1.add(104.0);
         AGVPaths.add(path1);
 
-        List<Integer> path2 = new ArrayList<Integer>();
-        path2.add(104);
-        path2.add(105);
+        List<Double> path2 = new ArrayList<Double>();
+        path2.add(104.0);
+        path2.add(105.0);
         AGVPaths.add(path2);
 
         timeWindow.generateTimeWindow(AGVPaths,AGVSpeed,graph,timeAlreadyPassing,minDistance);
