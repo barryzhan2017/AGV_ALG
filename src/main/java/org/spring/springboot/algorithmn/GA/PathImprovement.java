@@ -14,13 +14,13 @@ public class PathImprovement {
     //previous population zhi
     //提供给当前路径优化的方法，将当前路径中出发点和终点相同的部分归类，将这一部分中路径长度高于平均值的路替换成低于本身的路，并替换相应染色体,
     public void improvePath(List<List<List<AGVRecord>>> localAGVRecord, List<Integer[][]> priorityChromosomeSet,
-                            int previousPopulationGen, List<List<List<Integer>>> localAGVPaths) {
+                            int previousPopulationGen, List<List<List<Integer>>> localAGVPaths, double AGVSpeed) {
         //没有新的子代
         if (localAGVPaths.size()==0) {
             return;
         }
         //初始化HashMap,记录每个相同record的平均距离
-        HashMap<AGVRecord,Double> identicalAGVRecordSet = initialize(localAGVRecord, previousPopulationGen);
+        HashMap<AGVRecord,Double> identicalAGVRecordSet = initialize(localAGVRecord, previousPopulationGen, AGVSpeed);
         //车的数量
         int AGVNum = localAGVRecord.get(0).size();
         for (int i = previousPopulationGen; i < localAGVRecord.size(); i++) {
@@ -93,7 +93,7 @@ public class PathImprovement {
 
     //将所有的子代的所有的车辆的所有record加入一个不重复的map之中,并且算出平均的距离放到value
     public HashMap<AGVRecord,Double> initialize(List<List<List<AGVRecord>>> localAGVRecord,
-                                                int previousPopulationGen) {
+                                                int previousPopulationGen, double AGVSpeed) {
         //key是相同的record，value现在是出现次数
         HashMap<AGVRecord,Double> differentAGVRecordMap = new HashMap<AGVRecord,Double>();
         for (int i = previousPopulationGen; i < localAGVRecord.size(); i++) {
@@ -103,7 +103,7 @@ public class PathImprovement {
                     if (!differentAGVRecordMap.containsKey(record)) {
                         //初始化重复次数,避免对象的污染，新建一个对象
                         AGVRecord agvRecord = new AGVRecord(-1,-1,record.getStartNode(),
-                                record.getEndNode(),record.getDistance(),-1,false);
+                                record.getEndNode(),record.getDistance(),-1,false, AGVSpeed);
                         differentAGVRecordMap.put(agvRecord,1.0);
                     }
                     //如果是相同的路径，则把该路径相同的记录的路径增加上去,把重复次数加上一次

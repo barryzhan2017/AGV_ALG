@@ -72,7 +72,7 @@ public class ReturnPathPlanning {
                 int pathEndIndex = AGVPath.size()-1;
                 double distance = path[pathLength-1];
                 AGVRecord.get(count).add(new AGVRecord(pathStartIndex,pathEndIndex, AGVStartPoint,
-                        bufferEntrancePoint,distance,startIndex+count,true));
+                        bufferEntrancePoint,distance,startIndex+count,true,AGVSpeed));
                 DoubleAGVTime[count] += distance/AGVSpeed;
                 fitness[count] += distance;
             }

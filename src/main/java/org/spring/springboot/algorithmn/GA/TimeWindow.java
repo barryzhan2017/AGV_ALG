@@ -12,14 +12,14 @@ public class TimeWindow {
 
 
     //Generate time window of AGVs by analysing each timing to get on a node
-    public void generateTimeWindow(List<List<Double>> AGVPaths, double AGVSpeed,
+    public void generateTimeWindow(List<List<Integer>> AGVPaths, double AGVSpeed,
                                                    double[][] graph, Double[] timeAlreadyPassing,
                                                    Double minDistance) {
         List<List<TimeNode>> timeWindow = new ArrayList<List<TimeNode>>();
 
         //TimeAlreadyPassing can be -1 meaning the AGV is static,
         // path at least contains one node indicating the static position
-            for (List<Double> path : AGVPaths) {
+            for (List<Integer> path : AGVPaths) {
                 // One AGV Time window
                 List<TimeNode> AGVTimeWindow = new ArrayList<TimeNode>();
                 int AGVIndex = timeWindow.size();
@@ -28,7 +28,7 @@ public class TimeWindow {
                 //The size of the path
                 int numberOfNode = path.size();
                 //numberOfTimeNode == index for node
-                for (Double node: path) {
+                for (Integer node: path) {
                     TimeNode timeNode = null;
                     //The AGV stays still, just leave a null to the time window
                     if (numberOfNode == 1) {

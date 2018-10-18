@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface ConflictAvoidStrategy {
 
-    void conflictAvoidance(List<List<Double>> AGVPaths, double[] AGVFitness);
+    void conflictAvoidance(List<List<Integer>> AGVPaths, double[] AGVFitness);
 
 }

@@ -68,8 +68,8 @@ public class PathImprovementTest {
         //第一个车子的路径
         paths1.add(1);paths1.add(3);paths1.add(2);paths1.add(3);
 
-        AGVRecord agvRecord1 = new AGVRecord(0,2,1,2,3,0,true);
-        AGVRecord agvRecord3 = new AGVRecord(2,3,2,3,1,1,false);
+        AGVRecord agvRecord1 = new AGVRecord(0,2,1,2,3,0,true,2);
+        AGVRecord agvRecord3 = new AGVRecord(2,3,2,3,1,1,false,2);
 
 
         records1.add(agvRecord1);
@@ -79,8 +79,8 @@ public class PathImprovementTest {
         //第二个车子的路径
         paths2.add(1);paths2.add(2);paths2.add(3);
 
-        AGVRecord agvRecord2 = new AGVRecord(0,1,1,2,1,0,true);
-        AGVRecord agvRecord4 = new AGVRecord(1,2,2,3,1,1,false);
+        AGVRecord agvRecord2 = new AGVRecord(0,1,1,2,1,0,true,2);
+        AGVRecord agvRecord4 = new AGVRecord(1,2,2,3,1,1,false,2);
 
 
         records2.add(agvRecord2);
@@ -95,10 +95,10 @@ public class PathImprovementTest {
     @Test
     public void testListInitializedCorrect() {
         PathImprovement pathImprovement = new PathImprovement();
-        HashMap<AGVRecord,Double> agvRecordMap = pathImprovement.initialize(records,0);
+        HashMap<AGVRecord,Double> agvRecordMap = pathImprovement.initialize(records,0,2);
         assertEquals(2,agvRecordMap.size());
-        AGVRecord agvRecord1 = new AGVRecord(1,2,1,2,3,4,true);
-        AGVRecord agvRecord2 = new AGVRecord(1,2,2,3,1,5,false);
+        AGVRecord agvRecord1 = new AGVRecord(1,2,1,2,3,4,true,2);
+        AGVRecord agvRecord2 = new AGVRecord(1,2,2,3,1,5,false,2);
         assertTrue(agvRecordMap.containsKey(agvRecord1));
         assertTrue(agvRecordMap.containsKey(agvRecord2));
         System.out.println(records);
@@ -108,7 +108,7 @@ public class PathImprovementTest {
     @Test
     public void testMapMeanDistanceCorrect() {
         PathImprovement pathImprovement = new PathImprovement();
-        HashMap<AGVRecord,Double> agvRecordMap = pathImprovement.initialize(records, 0);
+        HashMap<AGVRecord,Double> agvRecordMap = pathImprovement.initialize(records, 0,2);
         //除了两个相同的路径累加了其他都是单独的未累加的路
         for (AGVRecord agvRecord: agvRecordMap.keySet()) {
             if (agvRecord.getStartNode()==1 && agvRecord.getEndNode()==2) {
@@ -125,7 +125,7 @@ public class PathImprovementTest {
     public void testImprovePathCorrect() {
         PathImprovement pathImprovement = new PathImprovement();
         //优化路径和染色体
-        pathImprovement.improvePath(records, chromosomes,0,paths);
+        pathImprovement.improvePath(records, chromosomes,0,paths,2);
         assertEquals(3,paths.get(0).get(0).size());
         assertEquals(1,(int)paths.get(0).get(0).get(0));
         assertEquals(2,(int)paths.get(0).get(0).get(1));

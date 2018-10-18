@@ -26,12 +26,16 @@ public class AGV_GA {
     private List<List<List<Integer>>> AGVPaths = new ArrayList<List<List<Integer>>>(); //每一个子代的每一个车的路径
     private List<double[]> AGVTimes = new ArrayList<double[]>(); //每一个子代的已经过去的时间
     private List<double[]> AGVFitness = new ArrayList<double[]>(); //初始化每一个子代的每个车的适应度
+
+
     private Double[] taskDistributionElitist;//最优的任务分配
     private Integer[][] priorityChromosomeSetElitist;//最优的染色体
     private double[] AGVFitnessElitist;
     private double[] AGVTimesElitist;
     private List<List<Integer>> AGVPathsElitist;
     private List<List<AGVRecord>> AGVRecordsElitist;
+
+
     private Random random = new Random();
     private int taskNumber;
     private int AGVNumber;
@@ -173,12 +177,14 @@ public class AGV_GA {
                 while (count < taskNumber) {
                     //记录是第几个任务
                     //获取最早的AGV空闲小车
-                    int AGVIndex = getEarliestAGV(localAGVTimes.get(i));
+                    double[] currentAGVTimes = localAGVTimes.get(i);
+                    int AGVIndex = getEarliestAGV(currentAGVTimes);
                     //最早的空闲车的路径
                     List<Integer> earliestAGV = generationForAGVPaths.get(AGVIndex);
                     //第一条路径的起始点的索引
                     int path1StartIndex = earliestAGV.size()-1;
-
+                    double[] currentAGVsFitness = localAGVFitness.get(i);
+                    List<AGVRecord> currentAGVRecords = localAGVRecord.get(i).get(AGVIndex);
 
                     //如果小车还未分配了任务，则获取小车的出发点
                     int startPoint = earliestAGV.get(path1StartIndex);
@@ -186,11 +192,17 @@ public class AGV_GA {
                     //第几个任务,考虑到每次都新加进来的子代，从他们那一带的开始获取
                     int numberOfTask = taskSequence.get(i + previousPopulationGen)[count];
                     //如果当前车子在buffer第一位的话，起始点就是buffer和graph交点, 并且直接加入path中，为了统一性,更新下fitness
-                    if (startPoint == buffer.get(buffer.size() - 2)) {
+                    int firstNodeToGraph = buffer.get(buffer.size() - 2);
+                    int nodeBothInGraphAndBuffer = buffer.get(buffer.size() - 1);
+                    if (startPoint == firstNodeToGraph) {
+
+                        AGVRecord bufferRecord = new AGVRecord(path1StartIndex, path1StartIndex + 1, firstNodeToGraph,
+                                nodeBothInGraphAndBuffer, minDistance, -1, true, AGVSpeed);
+                        currentAGVRecords.add(bufferRecord);
                         //变更下startPoint
-                        startPoint = buffer.get(buffer.size() - 1);
+                        startPoint = nodeBothInGraphAndBuffer;
                         earliestAGV.add(startPoint);
-                        localAGVFitness.get(i)[AGVIndex] += minDistance;
+                        currentAGVsFitness[AGVIndex] += minDistance;
                         //如果在buffer内的话，开始节点索引该加一来符合推移一个点作为起点的情况
                         path1StartIndex++;
                     }
@@ -213,7 +225,7 @@ public class AGV_GA {
                     double path2Distance = path2[path2Length - 1];
                     double distance = path1Distance + path2Distance;
                     //更新小车的任务完成时间表，不用更新在buffer中的时间，因为一开始初始化时间的时候已经计算了
-                    localAGVTimes.get(i)[AGVIndex] += distance / AGVSpeed;
+                    currentAGVTimes[AGVIndex] += distance / AGVSpeed;
                     //更新该小车的路径，不要重复了startPoint,索引从1开始
 //                System.out.println("taskSequence: " +startPoint+","+tasks[taskSequence.get(i)[count]][0]+","+tasks[taskSequence.get(i)[count]][1]);
 //                System.out.println("path1:"+Matrix.Factory.importFromArray(path1));
@@ -233,16 +245,16 @@ public class AGV_GA {
                     int path2EndIndex = earliestAGV.size()-1;
                     //此时不考虑从buffer中出来的距离了，这段距离对比较每个子代的相对的路径好坏没有影响。
                     AGVRecord firstAGVRecord = new AGVRecord(path1StartIndex,path1EndIndex,startPoint,tasks[numberOfTask][0],path1Distance,
-                            numberOfTask*2,true);
+                            numberOfTask*2,true, AGVSpeed);
                     AGVRecord secondAGVRecord = new AGVRecord(path2StartIndex,path2EndIndex,tasks[numberOfTask][0],tasks[numberOfTask][1],path2Distance,
-                            numberOfTask*2+1,false);
+                            numberOfTask*2+1,false, AGVSpeed);
                     //给该子代的AGV增加它的路径记录
-                    localAGVRecord.get(i).get(AGVIndex).add(firstAGVRecord);
-                    localAGVRecord.get(i).get(AGVIndex).add(secondAGVRecord);
+                    currentAGVRecords.add(firstAGVRecord);
+                    currentAGVRecords.add(secondAGVRecord);
                     //更新该子代该小车的适应度 最后一位存了距离，加上车子开出buffer的1点距离
-                    localAGVFitness.get(i)[AGVIndex] += (path1[path1.length - 1] + path2[path2.length - 1]);
+                    currentAGVsFitness[AGVIndex] += (path1[path1.length - 1] + path2[path2.length - 1]);
                     //调整其他还在buffer里头在该辆车后头的车子的位置，让他们都同时前进一步，不考虑进入record
-                    adjustOtherAGVPositions(bufferForAGV[AGVIndex], generationForAGVPaths, localAGVFitness.get(i));
+                    adjustOtherAGVPositions(bufferForAGV[AGVIndex], generationForAGVPaths, currentAGVsFitness);
                     count++;
 //                    System.out.println("第一步"+firstAGVRecord);
 //                    System.out.println("第二步"+secondAGVRecord);
@@ -255,7 +267,7 @@ public class AGV_GA {
                 i++;
             }
             System.out.println("路径" + localAGVPaths);
-            pathImprovement.improvePath(localAGVRecord,priorityChromosomeSet,previousPopulationGen,localAGVPaths);
+            pathImprovement.improvePath(localAGVRecord,priorityChromosomeSet,previousPopulationGen,localAGVPaths,AGVSpeed);
 
             //删除掉走了非法路径的子代
             deleteIllegalGeneration(localAGVFitness, localAGVPaths, localAGVTimes, localAGVRecord);
@@ -682,7 +694,7 @@ public class AGV_GA {
         }
         //如果小车闲置(为-1)，给数组赋值0
         for (int i = 0; i < timeAlreadyPassing.length; i++) {
-            if (timeAlreadyPassing[i]==-1) {
+            if (timeAlreadyPassing[i] == -1) {
                 timeForFinishingTasks[i] = (double)0;
             }
             //将所有小车的时间推到最小时间精度再开始计算系统路径规划，便于避撞
