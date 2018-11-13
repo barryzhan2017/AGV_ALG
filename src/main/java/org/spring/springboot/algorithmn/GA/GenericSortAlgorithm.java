@@ -1,6 +1,6 @@
 package org.spring.springboot.algorithmn.GA;
 
-//merge sort
+//merge sort and insert sort
 public class GenericSortAlgorithm<T> {
 
     public static  <T extends Comparable<? super T>>void insertSort(int[] a, T[] compareTool) {

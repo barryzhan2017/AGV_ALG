@@ -125,5 +125,44 @@ public class TimeWindow {
     public int getStep(int decelerateAGV, int indexOfConflict) {
         return getAGVTimeSequence(decelerateAGV).get(indexOfConflict).getNumberOfStep();
     }
+
+    //Get the minimum time in the time windows pointed by time pointer
+    public double getMinimumTime(int[] timePointer) {
+        int sizeOfTimePointer = timePointer.length;
+        Double[] AGVCurrentTime = new Double[sizeOfTimePointer];
+        for (int i = 0; i < sizeOfTimePointer; i++) {
+            AGVCurrentTime[i] = timeWindow.get(i).get(timePointer[i]).getTime();
+        }
+        GenericSortAlgorithm.mergesort(AGVCurrentTime);
+        return AGVCurrentTime[0];
+    }
+
+    //Find the subset of the time window including the start time
+    public TimeWindow findCurrentTimeWindowsSet(double endTime, int[] timePointer) {
+        TimeWindow timeWindowSubset = new TimeWindow();
+        int numberOfAGV = 0;
+        for (List<TimeNode> timeNodes: timeWindow) {
+            List<TimeNode> timeNodeInTimePeriod = new ArrayList<>();
+            for (int i = 0; i < timeNodes.size() - 1; i++) {
+                //in order to put the node 0 into the time windows
+                // , we should make first part as inclusive
+                if (timeNodes.get(i).getTime() <= endTime
+                        && timeNodes.get(i + 1).getTime() > endTime) {
+                    timeNodeInTimePeriod.add(timeNodes.get(i));
+                    timeNodeInTimePeriod.add(timeNodes.get(i + 1));
+                    timeWindowSubset.add(timeNodeInTimePeriod);
+                    //set the time pointer to the one that is bigger than the current end time
+                    timePointer[numberOfAGV] = i + 1;
+                    break;
+                }
+            }
+            numberOfAGV++;
+        }
+        return timeWindowSubset;
+    }
+
+    private void add(List<TimeNode> timeNodeInTimePeriod) {
+        timeWindow.add(timeNodeInTimePeriod);
+    }
 }
 

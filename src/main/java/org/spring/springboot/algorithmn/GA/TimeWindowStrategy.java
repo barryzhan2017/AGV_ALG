@@ -2,8 +2,8 @@ package org.spring.springboot.algorithmn.GA;
 
 
 
-import com.sun.prism.impl.Disposer;
 import org.spring.springboot.algorithmn.GA.common.DistanceCalculation;
+import org.ujmp.core.Matrix;
 
 import java.util.List;
 
@@ -30,15 +30,39 @@ public class TimeWindowStrategy implements ConflictAvoidStrategy{
 
     }
 
+    //According to the next minimum time to step by step solve three types of conflicts.
     @Override
     public void conflictAvoidance(List<List<Integer>> AGVPaths, double[] AGVFitness) {
         TimeWindow timeWindow = new TimeWindow();
         timeWindow.generateTimeWindow(AGVPaths, AGVSpeed, graph, timeAlreadyPassing, minDistance);
-        resolveNodeConflict(timeWindow, AGVPaths);
-        resolvePursuitConflict(timeWindow, AGVPaths);
+        AGVNumber = timeWindow.size();
+        // Initialize the time pointer that indicates
+        // where the current judgement should be made in all the time sequences
+        int[] timePointer = new int[AGVNumber];
+        for (int i = 0; i < AGVNumber; i++) {
+            //When the first node starts at 0, time pointer points to the next one
+            if (timeWindow.getAGVTimeSequence(i).get(0).getTime() == 0) {
+                timePointer[i] = 1;
+            }
+            else {
+                timePointer[i] = 0;
+            }
+        }
+        double startTime = 0;
+        while (true) {
+            double endTime = timeWindow.getMinimumTime(timePointer);
+            //find the time window set in the next time period
+            TimeWindow timeWindowSubset = timeWindow.findCurrentTimeWindowsSet(endTime, timePointer);
+            startTime = endTime;
 
+            resolveNodeConflict(timeWindow, AGVPaths);
+            resolvePursuitConflict(timeWindow, AGVPaths);
+           // resolveOppositeConflict(timeWindow, AGVPaths);
 
+        }
     }
+
+
 
     //When AGV with low priority is close to the conflict node,
     // it would park to let AGV with high priority go first.
@@ -83,6 +107,8 @@ public class TimeWindowStrategy implements ConflictAvoidStrategy{
         }
     }
 
+    //if one AGV goes off the start node earlier but arrives at the end node later
+    //than the other AGV, decelerate the speed of the previous later one
     private void resolvePursuitConflict(TimeWindow timeWindow,List<List<Integer>> AGVPaths) {
 
     }
