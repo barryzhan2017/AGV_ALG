@@ -4,12 +4,8 @@ package org.spring.springboot.algorithmn.test;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.spring.springboot.Application;
-import org.spring.springboot.algorithmn.GA.AGVRecord;
-import org.spring.springboot.algorithmn.GA.PathImprovement;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGVRecord;
+import org.spring.springboot.algorithmn.genetic_algorithm.PathImprovement;
 
 import java.util.ArrayList;
 import java.util.HashMap;

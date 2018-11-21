@@ -1,16 +1,11 @@
 package org.spring.springboot.algorithmn.test;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.spring.springboot.Application;
-import org.spring.springboot.algorithmn.GA.AGVRecord;
-import org.spring.springboot.algorithmn.GA.AGV_GA;
-import org.spring.springboot.algorithmn.GA.FeasiblePathGrowth;
-import org.spring.springboot.algorithmn.GA.ReturnPathPlanning;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGVRecord;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGV_GA;
+import org.spring.springboot.algorithmn.genetic_algorithm.FeasiblePathGrowth;
+import org.spring.springboot.algorithmn.genetic_algorithm.ReturnPathPlanning;
 import org.ujmp.core.Matrix;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotEquals;

@@ -1,9 +1,8 @@
-package org.spring.springboot.algorithmn.GA;
+package org.spring.springboot.algorithmn.genetic_algorithm;
 
 
 
-import org.spring.springboot.algorithmn.GA.common.DistanceCalculation;
-import org.ujmp.core.Matrix;
+import org.spring.springboot.algorithmn.common.DistanceCalculation;
 
 import java.util.List;
 

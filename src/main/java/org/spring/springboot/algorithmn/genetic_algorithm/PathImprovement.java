@@ -1,8 +1,7 @@
-package org.spring.springboot.algorithmn.GA;
+package org.spring.springboot.algorithmn.genetic_algorithm;
 
 
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 

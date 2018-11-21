@@ -1,4 +1,4 @@
-package org.spring.springboot.algorithmn.GA;
+package org.spring.springboot.algorithmn.genetic_algorithm;
 
 import java.util.Objects;
 

@@ -1,4 +1,4 @@
-package org.spring.springboot.algorithmn.GA.common;
+package org.spring.springboot.algorithmn.common;
 
 public class DistanceCalculation {
 

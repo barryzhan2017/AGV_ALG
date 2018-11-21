@@ -1,6 +1,5 @@
-package org.spring.springboot.algorithmn.GA;
+package org.spring.springboot.algorithmn.genetic_algorithm;
 
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.ujmp.core.Matrix;
 
 import java.util.ArrayList;

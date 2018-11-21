@@ -1,11 +1,7 @@
 package org.spring.springboot.algorithmn.test;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.spring.springboot.Application;
-import org.spring.springboot.algorithmn.GA.AGVRecord;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGVRecord;
 
 
 import java.util.HashSet;

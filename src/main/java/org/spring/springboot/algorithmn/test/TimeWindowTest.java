@@ -1,14 +1,9 @@
 package org.spring.springboot.algorithmn.test;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.spring.springboot.Application;
-import org.spring.springboot.algorithmn.GA.TimeNode;
-import org.spring.springboot.algorithmn.GA.TimeWindow;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.spring.springboot.algorithmn.genetic_algorithm.TimeNode;
+import org.spring.springboot.algorithmn.genetic_algorithm.TimeWindow;
 import org.ujmp.core.Matrix;
 
 import java.io.File;

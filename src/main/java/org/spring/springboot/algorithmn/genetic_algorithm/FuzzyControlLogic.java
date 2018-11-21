@@ -1,6 +1,4 @@
-package org.spring.springboot.algorithmn.GA;
-
-import java.math.BigDecimal;
+package org.spring.springboot.algorithmn.genetic_algorithm;
 
 public class FuzzyControlLogic {
     private final int[][] defuzzificationTable = {{-4,-3,-3,-2,-2,-1,-1,0,0},

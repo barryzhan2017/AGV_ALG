@@ -2,7 +2,7 @@ package org.spring.springboot.algorithmn.test;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.spring.springboot.algorithmn.GA.ConflictAvoid;
+import org.spring.springboot.algorithmn.genetic_algorithm.ConflictAvoid;
 import org.ujmp.core.Matrix;
 
 import java.io.File;

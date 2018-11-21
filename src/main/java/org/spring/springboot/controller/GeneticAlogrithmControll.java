@@ -1,9 +1,8 @@
 package org.spring.springboot.controller;
 
 
-import org.omg.PortableInterceptor.INACTIVE;
-import org.spring.springboot.algorithmn.GA.AGVRecord;
-import org.spring.springboot.algorithmn.GA.AGV_GA;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGVRecord;
+import org.spring.springboot.algorithmn.genetic_algorithm.AGV_GA;
 import org.spring.springboot.algorithmn.preprocess.PreprocessData;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
