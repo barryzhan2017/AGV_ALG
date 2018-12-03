@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="springboot-mybatis" target="7" />
+      <module name="springboot-mybatis" target="1.5" />
     </bytecodeTargetLevel>
   </component>
 </project>
