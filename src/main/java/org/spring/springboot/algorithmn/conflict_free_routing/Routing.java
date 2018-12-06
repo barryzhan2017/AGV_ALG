@@ -1,6 +1,7 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
 
 import org.spring.springboot.algorithmn.common.CommonConstant;
+import org.spring.springboot.algorithmn.common.CommonGraphOperation;
 
 import java.util.List;
 import java.util.PriorityQueue;
@@ -67,11 +68,85 @@ public class Routing {
          return CommonConstant.INFINITE;
      }
 
-    private boolean noHeadOnConflict(int startNode, int endNode, double timeEnterPath, double validTimeToReachCrossing) {
+    /**
+     * Find the head-on conflict by checking the other AGV with the reverse direction
+     * @param startNode
+     * @param endNode
+     * @param timeEnterPath The time the AGV has entered the edge
+     * @param timeExistPath The time the AGV leaves the edge (starts to enter the crossing)
+     * @return If there is no head-on conflict
+     */
+    private boolean noHeadOnConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
+             for (TimeWindow reverseAGVStartTimeWindow : reservedTimeWindowList[endNode]) {
+                 //One AGV comes into the edge in the reverse direction
+                 if (reverseAGVStartTimeWindow.getNextNodeNumber() == startNode) {
+                     int AGVNumber = reverseAGVStartTimeWindow.getAGVNumber();
+                     //The time AGV has entered the edge
+                     double reverseAGVStartTime = reverseAGVStartTimeWindow.getEndTime();
+                     TimeWindow reverseAGVEndTimeWindow = findNextTimeWindow(startNode, reverseAGVStartTime, AGVNumber);
+                     //The time AGV starts to leave the edge
+                     double reverseAGVEndTime = reverseAGVEndTimeWindow.getStartTime();
+                     //The other AGV comes before the AGV leaves and leaves after the AGV comes. It's a conflict.
+                     if (reverseAGVStartTime <= timeExistPath &&
+                             reverseAGVEndTime >= timeEnterPath) {
+                         return false;
+                     }
+                 }
+             }
+             return true;
     }
 
-    private boolean noCatchUpConflict(int startNode, int endNode, double timeEnterPath, double validTimeToReachCrossing) {
+    /**
+     * Find the Time window immediately after the end time of the ongoing AGV coming out of the node
+     * by checking the specific reserved time window
+     * @param nextNode
+     * @param startTime The time the AGV comes out of the node
+     * @param AGVNumber
+     * @return Next Time Window
+     */
+    private TimeWindow findNextTimeWindow(int nextNode, double startTime, int AGVNumber) {
+        for (TimeWindow timeWindows : reservedTimeWindowList[nextNode]) {
+            //First time window the specific AGV arrives
+            if (timeWindows.getStartTime() > startTime && timeWindows.getAGVNumber() == AGVNumber) {
+                return timeWindows;
+            }
+        }
+        return null;
     }
+
+    /**
+     * Find the catch-up conflict by checking the other AGV with the same direction
+     * @param startNode
+     * @param endNode
+     * @param timeEnterPath The time the AGV has entered the edge
+     * @param timeExistPath The time the AGV leaves the edge (starts to enter the crossing)
+     * @return If there is no catch-up conflict
+     */
+    private boolean noCatchUpConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
+        for (TimeWindow otherAGVStartTimeWindow : reservedTimeWindowList[startNode]) {
+            //The time AGV has entered the edge
+            double otherAGVStartTime;
+            //One other AGV comes into the edge in the same direction
+            if (otherAGVStartTimeWindow.getNextNodeNumber() == endNode &&
+                    (otherAGVStartTime = otherAGVStartTimeWindow.getEndTime()) != timeEnterPath) {
+                int AGVNumber = otherAGVStartTimeWindow.getAGVNumber();
+                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(startNode, otherAGVStartTime, AGVNumber);
+                //The time AGV starts to leave the edge
+                double otherAGVEndTime = otherAGVEndTimeWindow.getStartTime();
+                //The other AGV comes before the AGV comes and leaves after the AGV leaves.
+                // Or reverse the sequence of the two AGVs. Those are conflicts.
+                if ((otherAGVStartTime < timeEnterPath &&
+                        otherAGVEndTime > timeExistPath) ||
+                        (timeEnterPath < otherAGVStartTime  &&
+                                timeExistPath > otherAGVEndTime )) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
 
     /**
      * Test if the free time window has enough time to let the AGV pass the crossing

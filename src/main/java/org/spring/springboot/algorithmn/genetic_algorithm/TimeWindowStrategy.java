@@ -2,7 +2,7 @@ package org.spring.springboot.algorithmn.genetic_algorithm;
 
 
 
-import org.spring.springboot.algorithmn.common.DistanceCalculation;
+import org.spring.springboot.algorithmn.common.CommonGraphOperation;
 
 import java.util.List;
 
@@ -95,7 +95,7 @@ public class TimeWindowStrategy implements ConflictAvoidStrategy{
                     AGVRecord decelerateSpeedRecord = AGVRecords.get(decelerateAGV).get(recordIndex);
                     double currentSpeed = decelerateSpeedRecord.getSpeed();
                     double distance =
-                            DistanceCalculation.calculateDrivingDistance(graph, indexInPath-1 ,
+                            CommonGraphOperation.calculateDrivingDistance(graph, indexInPath-1 ,
                                     indexInPath, minDistance);
                     //Get new decreased speed
                     double decreasedSpeed = distance / (distance / currentSpeed + timeInterval);

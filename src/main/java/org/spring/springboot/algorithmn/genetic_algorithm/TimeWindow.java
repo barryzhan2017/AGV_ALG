@@ -1,6 +1,6 @@
 package org.spring.springboot.algorithmn.genetic_algorithm;
 
-import org.spring.springboot.algorithmn.common.DistanceCalculation;
+import org.spring.springboot.algorithmn.common.CommonGraphOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class TimeWindow {
                             //To syc by adding the next time node
                             int nextNode = path.get(numberOfTimeNode + 1).intValue();
                             drivingDistance =
-                                    DistanceCalculation.calculateDrivingDistance(graph, node.intValue(),
+                                    CommonGraphOperation.calculateDrivingDistance(graph, node.intValue(),
                                             nextNode, minDistance);
                             timeToGetToNode = drivingDistance/AGVSpeed;
                             TimeNode nextTimeNode = new TimeNode(timeToGetToNode, nextNode, 1);
@@ -57,7 +57,7 @@ public class TimeWindow {
                         // Starts in an edge
                         int nextNode = path.get(numberOfTimeNode + 1).intValue();
                         drivingDistance =
-                                DistanceCalculation.calculateDrivingDistance(graph, node.intValue(),
+                                CommonGraphOperation.calculateDrivingDistance(graph, node.intValue(),
                                         nextNode, minDistance);
                         timeToGetToNode = drivingDistance/AGVSpeed - timeAlreadyPassing[AGVIndex];
                         //This criteria the 0 step is ignored to correctly trace the step in the path
@@ -74,7 +74,7 @@ public class TimeWindow {
                         int lastTimeNode = AGVTimeWindow.size() - 1;
                         double previousDrivingTime = AGVTimeWindow.get(lastTimeNode).getTime();
                         drivingDistance =
-                                DistanceCalculation.calculateDrivingDistance(graph, node.intValue(),
+                                CommonGraphOperation.calculateDrivingDistance(graph, node.intValue(),
                                         nextNode, minDistance);
                         timeToGetToNode = drivingDistance/AGVSpeed + previousDrivingTime;
                         timeNode = new TimeNode(timeToGetToNode, nextNode, numberOfTimeNode + 1);

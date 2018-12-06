@@ -5,13 +5,24 @@ public class TimeWindow {
     private double startTime;
     private double endTime;
     private int AGVNumber;
+    //The node the AGV goes to next
+    private int nextNodeNumber;
 
 
-    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber) {
+    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
         this.AGVNumber = AGVNumber;
+        this.nextNodeNumber = nextNodeNumber;
+    }
+
+    public int getNextNodeNumber() {
+        return nextNodeNumber;
+    }
+
+    public void setNextNodeNumber(int nextNodeNumber) {
+        this.nextNodeNumber = nextNodeNumber;
     }
 
     public int getNodeNumber() {
