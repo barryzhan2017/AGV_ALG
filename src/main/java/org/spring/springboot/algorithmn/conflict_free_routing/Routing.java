@@ -21,11 +21,11 @@ public class Routing {
     private double AGVLength;
     //consider the buffer information. how to get
 
-
-    //Get the route of the AGV by applying conflict-free routing algorithm
-    public List<Integer> route() {
-
-    }
+//
+//    //Get the route of the AGV by applying conflict-free routing algorithm
+//    public List<Integer> route() {
+//
+//    }
 
     /**
      * Test if one time window is reachable for the other different one and return the path and minimum time required to travel
