@@ -1,7 +1,7 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
 
 import org.spring.springboot.algorithmn.common.CommonConstant;
-import org.spring.springboot.algorithmn.common.CommonGraphOperation;
+
 
 import java.util.List;
 import java.util.PriorityQueue;
@@ -10,9 +10,9 @@ import java.util.PriorityQueue;
 public class Routing {
 
     //The time window the AGV can travel, each row is for a specific node
-    private PriorityQueue<TimeWindow>[] freeTimeWindowList;
+    private List<PriorityQueue<TimeWindow>> freeTimeWindowList;
     //The time window is reserved by other AGVs, each row is for a specific node
-    private PriorityQueue<TimeWindow>[] reservedTimeWindowList;
+    private List<PriorityQueue<TimeWindow>> reservedTimeWindowList;
     //The task for the specific AGV to finish
     private int[] task;
     private double[][] graph;
@@ -48,7 +48,7 @@ public class Routing {
         double timeToReachCrossing =  (distance - AGVLength) / speed;
         //Search for the nearest available time window
         double validTimeToReachCrossing;
-        for (TimeWindow possibleTimeWindow : freeTimeWindowList[endNode]) {
+        for (TimeWindow possibleTimeWindow : freeTimeWindowList.get(endNode)) {
             double startTime = possibleTimeWindow.getStartTime();
             double endTime = possibleTimeWindow.getEndTime();
             if ((validTimeToReachCrossing = timeToReachCrossing(timeToReachCrossing, speed, startTime, endTime)) != -1) {
@@ -77,7 +77,7 @@ public class Routing {
      * @return If there is no head-on conflict
      */
     private boolean noHeadOnConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
-             for (TimeWindow reverseAGVStartTimeWindow : reservedTimeWindowList[endNode]) {
+             for (TimeWindow reverseAGVStartTimeWindow : reservedTimeWindowList.get(endNode)) {
                  //One AGV comes into the edge in the reverse direction
                  if (reverseAGVStartTimeWindow.getNextNodeNumber() == startNode) {
                      int AGVNumber = reverseAGVStartTimeWindow.getAGVNumber();
@@ -105,7 +105,7 @@ public class Routing {
      * @return Next Time Window
      */
     private TimeWindow findNextTimeWindow(int nextNode, double startTime, int AGVNumber) {
-        for (TimeWindow timeWindows : reservedTimeWindowList[nextNode]) {
+        for (TimeWindow timeWindows : reservedTimeWindowList.get(nextNode)) {
             //First time window the specific AGV arrives
             if (timeWindows.getStartTime() > startTime && timeWindows.getAGVNumber() == AGVNumber) {
                 return timeWindows;
@@ -123,7 +123,7 @@ public class Routing {
      * @return If there is no catch-up conflict
      */
     private boolean noCatchUpConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
-        for (TimeWindow otherAGVStartTimeWindow : reservedTimeWindowList[startNode]) {
+        for (TimeWindow otherAGVStartTimeWindow : reservedTimeWindowList.get(startNode)) {
             //The time AGV has entered the edge
             double otherAGVStartTime;
             //One other AGV comes into the edge in the same direction
