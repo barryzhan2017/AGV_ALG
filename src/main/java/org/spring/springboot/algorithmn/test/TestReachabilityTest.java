@@ -35,7 +35,7 @@ public class TestReachabilityTest {
         Routing routing = new Routing();
         PriorityQueue<TimeWindow> reservedTimeWindowList = new PriorityQueue<>(20, new TimeWindowComparator());
         PriorityQueue<TimeWindow> freeTimeWindowList = new PriorityQueue<>(20, new TimeWindowComparator());
-        
+
     }
 
 
