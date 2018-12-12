@@ -5,23 +5,33 @@ import org.spring.springboot.algorithmn.common.CommonConstant;
 
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 //This is the algorithm to calculate the conflict-free route for one AGV given the current time windows.
 public class Routing {
 
     //The time window the AGV can travel, each row is for a specific node
-    private List<PriorityQueue<TimeWindow>> freeTimeWindowList;
+    private List<Queue<TimeWindow>> freeTimeWindowList;
     //The time window is reserved by other AGVs, each row is for a specific node
-    private List<PriorityQueue<TimeWindow>> reservedTimeWindowList;
+    private List<Queue<TimeWindow>> reservedTimeWindowList;
     //The task for the specific AGV to finish
     private int[] task;
     private double[][] graph;
     //Current time window the AGV occupies
     private TimeWindow currentTimeWindow;
-    private double AGVLength;
     //consider the buffer information. how to get
 
-//
+    public Routing() {}
+
+    public Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, int[] task, double[][] graph, TimeWindow currentTimeWindow) {
+        this.freeTimeWindowList = freeTimeWindowList;
+        this.reservedTimeWindowList = reservedTimeWindowList;
+        this.task = task;
+        this.graph = graph;
+        this.currentTimeWindow = currentTimeWindow;
+    }
+
+
 //    //Get the route of the AGV by applying conflict-free routing algorithm
 //    public List<Integer> route() {
 //
@@ -35,7 +45,7 @@ public class Routing {
      * @param speed
      * @return Time required to go for the path
      */
-     private double testReachabilityForDifferentNode(int endNode, TimeWindow currentTimeWindow, Integer[] path, double speed) {
+     public double testReachabilityForDifferentNode(int endNode, TimeWindow currentTimeWindow, Integer[] path, double speed) {
         int startNode = currentTimeWindow.getNodeNumber();
          path[0] = -1;
         //Check for space availability
@@ -45,7 +55,7 @@ public class Routing {
         //Check for time availability. If the free time window is long enough for the AGV to pass the crossing
         double distance = graph[startNode][endNode];
         //The time for the AGV to reach the entrance edge of crossing
-        double timeToReachCrossing =  (distance - AGVLength) / speed;
+        double timeToReachCrossing =  (distance - CommonConstant.AGV_LENGTH) / speed;
         //Search for the nearest available time window
         double validTimeToReachCrossing;
         for (TimeWindow possibleTimeWindow : freeTimeWindowList.get(endNode)) {
@@ -73,10 +83,10 @@ public class Routing {
      * @param startNode
      * @param endNode
      * @param timeEnterPath The time the AGV has entered the edge
-     * @param timeExistPath The time the AGV leaves the edge (starts to enter the crossing)
+     * @param timeExitPath The time the AGV leaves the edge (starts to enter the crossing)
      * @return If there is no head-on conflict
      */
-    private boolean noHeadOnConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
+    public boolean noHeadOnConflict(int startNode, int endNode, double timeEnterPath, double timeExitPath) {
              for (TimeWindow reverseAGVStartTimeWindow : reservedTimeWindowList.get(endNode)) {
                  //One AGV comes into the edge in the reverse direction
                  if (reverseAGVStartTimeWindow.getNextNodeNumber() == startNode) {
@@ -84,10 +94,14 @@ public class Routing {
                      //The time AGV has entered the edge
                      double reverseAGVStartTime = reverseAGVStartTimeWindow.getEndTime();
                      TimeWindow reverseAGVEndTimeWindow = findNextTimeWindow(startNode, reverseAGVStartTime, AGVNumber);
+                     //Not have such next step, continue find next AGV
+                     if (reverseAGVEndTimeWindow == null) {
+                         continue;
+                     }
                      //The time AGV starts to leave the edge
                      double reverseAGVEndTime = reverseAGVEndTimeWindow.getStartTime();
                      //The other AGV comes before the AGV leaves and leaves after the AGV comes. It's a conflict.
-                     if (reverseAGVStartTime <= timeExistPath &&
+                     if (reverseAGVStartTime <= timeExitPath &&
                              reverseAGVEndTime >= timeEnterPath) {
                          return false;
                      }
@@ -104,7 +118,7 @@ public class Routing {
      * @param AGVNumber
      * @return Next Time Window
      */
-    private TimeWindow findNextTimeWindow(int nextNode, double startTime, int AGVNumber) {
+    public TimeWindow findNextTimeWindow(int nextNode, double startTime, int AGVNumber) {
         for (TimeWindow timeWindows : reservedTimeWindowList.get(nextNode)) {
             //First time window the specific AGV arrives
             if (timeWindows.getStartTime() > startTime && timeWindows.getAGVNumber() == AGVNumber) {
@@ -119,26 +133,31 @@ public class Routing {
      * @param startNode
      * @param endNode
      * @param timeEnterPath The time the AGV has entered the edge
-     * @param timeExistPath The time the AGV leaves the edge (starts to enter the crossing)
+     * @param timeExitPath The time the AGV leaves the edge (starts to enter the crossing)
      * @return If there is no catch-up conflict
      */
-    private boolean noCatchUpConflict(int startNode, int endNode, double timeEnterPath, double timeExistPath) {
+    public boolean noCatchUpConflict(int startNode, int endNode, double timeEnterPath, double timeExitPath) {
         for (TimeWindow otherAGVStartTimeWindow : reservedTimeWindowList.get(startNode)) {
             //The time AGV has entered the edge
             double otherAGVStartTime;
             //One other AGV comes into the edge in the same direction
-            if (otherAGVStartTimeWindow.getNextNodeNumber() == endNode &&
-                    (otherAGVStartTime = otherAGVStartTimeWindow.getEndTime()) != timeEnterPath) {
+            if ((otherAGVStartTimeWindow.getNextNodeNumber() == endNode) &&
+                    ((otherAGVStartTime = otherAGVStartTimeWindow.getEndTime()) != timeEnterPath)) {
                 int AGVNumber = otherAGVStartTimeWindow.getAGVNumber();
-                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(startNode, otherAGVStartTime, AGVNumber);
+                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(endNode, otherAGVStartTime, AGVNumber);
+                //Not have such next step, continue find next AGV
+                if (otherAGVEndTimeWindow == null) {
+                    continue;
+                }
                 //The time AGV starts to leave the edge
                 double otherAGVEndTime = otherAGVEndTimeWindow.getStartTime();
+
                 //The other AGV comes before the AGV comes and leaves after the AGV leaves.
                 // Or reverse the sequence of the two AGVs. Those are conflicts.
                 if ((otherAGVStartTime < timeEnterPath &&
-                        otherAGVEndTime > timeExistPath) ||
+                        otherAGVEndTime > timeExitPath) ||
                         (timeEnterPath < otherAGVStartTime  &&
-                                timeExistPath > otherAGVEndTime )) {
+                                timeExitPath > otherAGVEndTime )) {
                     return false;
                 }
             }
@@ -156,7 +175,7 @@ public class Routing {
      * @param endTime End time of the possible free time window
      * @return The time to reach the crossing if the free time window has enough time or -1 if not enough time
      */
-    private double timeToReachCrossing(double timeToReachCrossing, double speed, double startTime, double endTime) {
+    public double timeToReachCrossing(double timeToReachCrossing, double speed, double startTime, double endTime) {
             //startTime of the possible time window
             if (startTime > currentTimeWindow.getEndTime()) {
                 //Find the nearest possible time to enter the crossing

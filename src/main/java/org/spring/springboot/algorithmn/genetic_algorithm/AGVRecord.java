@@ -1,7 +1,6 @@
 package org.spring.springboot.algorithmn.genetic_algorithm;
 
 
-import org.spring.springboot.algorithmn.test.CommonTestMethod;
 
 //记录某一子代的某个AGV的某个任务的完成情况
 public class AGVRecord {
@@ -13,7 +12,7 @@ public class AGVRecord {
     private double distance = -1;//该路径的距离
     private int indexInPriorityChromosome = -1;//在priorityChromosome中的位置
     private boolean isFirstStep= true;//是该任务的从当前位置到出发位置（第一步）还是从出发位置到结束位置（第二步，false）
-    private double speed = CommonTestMethod.SPEED;//AGV在这段路上的速度，用来记录避障时的减速
+    private double speed = 2;//AGV在这段路上的速度，用来记录避障时的减速
 
     public AGVRecord(int pathStartIndex, int pathEndIndex, int startNode, int endNode,
                      double distance, int indexInPriorityChromosome, boolean isFirstStep, double speed) {
