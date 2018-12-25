@@ -48,7 +48,7 @@ public class Routing {
      * @param speed
      * @return Time required to go for the path, to the end node
      */
-    public double testReachabilityForSameNode(TimeWindow currentTimeWindow, Integer[] path, double speed) {
+    public double testReachabilityForSameTimeWindow(TimeWindow currentTimeWindow, Integer[] path, double speed) {
 
         return -1;
 
@@ -56,15 +56,16 @@ public class Routing {
 
     /**
      * Test if one time window is reachable for the other different one and return the path and minimum time required to travel
-     * @param endNode Possible Destination
+     * @param endTimeWindow Possible Destination time window
      * @param currentTimeWindow Current status of the vehicle
      * @param path Path if the end node can be reached
      * @param speed
      * @return Time required to go for the path, to the end node
      */
-     public double testReachabilityForDifferentNode(int endNode, TimeWindow currentTimeWindow, Integer[] path, double speed) {
+     public double testReachabilityForDifferentTimeWindow(TimeWindow endTimeWindow, TimeWindow currentTimeWindow, Integer[] path, double speed) {
         int startNode = currentTimeWindow.getNodeNumber();
         double currentAGVStartTime = currentTimeWindow.getEndTime();
+        int endNode = endTimeWindow.getNodeNumber();
         path[0] = -1;
         path[1] = -1;
         path[2] = -1;
@@ -76,24 +77,22 @@ public class Routing {
         double distance = graph[startNode][endNode];
         //The time for the AGV to reach the entrance edge of crossing
         double timeToReachCrossing =  (distance - CommonConstant.AGV_LENGTH) / speed + currentAGVStartTime;
-        //Search for the nearest available time window
+        //Check for the time availability
         double validTimeToReachCrossing;
-        for (TimeWindow possibleTimeWindow : freeTimeWindowList.get(endNode)) {
-            double startTime = possibleTimeWindow.getStartTime();
-            double endTime = possibleTimeWindow.getEndTime();
-            if ((validTimeToReachCrossing = timeToReachCrossing(timeToReachCrossing, speed, startTime, endTime)) != -1) {
-                //Check for the conflict
-                double timeEnterPath = currentTimeWindow.getEndTime();
-                if (noCatchUpConflict(startNode, endNode ,timeEnterPath, validTimeToReachCrossing)
-                        && noHeadOnConflict(startNode, endNode ,timeEnterPath, validTimeToReachCrossing)) {
-                    path[0] = startNode;
-                    path[1] = endNode;
-                    path[2] = -1;
-                    return validTimeToReachCrossing;
-                }
-                //No other solution if the nearest available time window cannot avoid conflicts
-                return CommonConstant.INFINITE;
+        double startTime = endTimeWindow.getStartTime();
+        double endTime = endTimeWindow.getEndTime();
+        if ((validTimeToReachCrossing = timeToReachCrossing(timeToReachCrossing, speed, startTime, endTime)) != -1) {
+            //Check for the conflict
+            double timeEnterPath = currentTimeWindow.getEndTime();
+            if (noCatchUpConflict(startNode, endNode ,timeEnterPath, validTimeToReachCrossing)
+                    && noHeadOnConflict(startNode, endNode ,timeEnterPath, validTimeToReachCrossing)) {
+                path[0] = startNode;
+                path[1] = endNode;
+                path[2] = -1;
+                return validTimeToReachCrossing;
             }
+            //No other solution if the nearest available time window cannot avoid conflicts
+            return CommonConstant.INFINITE;
         }
         //Cannot have enough time to pass the AGV
          return CommonConstant.INFINITE;

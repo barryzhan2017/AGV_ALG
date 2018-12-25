@@ -1,19 +1,16 @@
 package org.spring.springboot.algorithmn.test;
 
-import org.elasticsearch.common.recycler.Recycler;
 import org.junit.Before;
 import org.junit.Test;
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.conflict_free_routing.Routing;
 import org.spring.springboot.algorithmn.conflict_free_routing.TimeWindow;
 import org.spring.springboot.algorithmn.conflict_free_routing.TimeWindowComparator;
-import org.spring.springboot.algorithmn.exception.InvalidReachingTimeException;
 import org.spring.springboot.algorithmn.test.common.CommonTestConstant;
 import org.ujmp.core.Matrix;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -198,139 +195,210 @@ public class TestReachabilityTest {
         assertEquals(4.0, routing.timeToReachCrossing(4,8,4,6));
     }
 
-
-
-    //The AGV at node 8 wants to choose to go node 9, but the other AGV comes from 9 to 8
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 to 8 the other time later
     @Test
-    public void shouldAGVCannotGoWhenGoingToThePathWillCauseHeadOnConflict() {
+    public void shouldAGVCanGoWhenGoingToThePathWillNotCauseHeadOnConflict() {
         List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
         List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
         Integer [] path = {-2,-2,-2};
+        //AGV 1
         TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 9, 10, 0, 7);
+        //AGV 2
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 18, 19, 0, 7);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
-        TimeWindow reservedAGVTimeWindow3 = new TimeWindow(7, 8, 9, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow3);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 0, 9, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, 9, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, 22, -1, -1);
-        TimeWindow freeAGVTimeWindow5 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow5);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(8,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
-        assertEquals(-1, (int)path[0]);
-    }
-
-    //The AGV at node 8 wants to choose to go node 9, but the other AGV comes from 8 to 9 latter at first and surpasses the other AGV
-    @Test
-    public void shouldAGVCannotGoWhenGoingToThePathWillCauseCatchUpConflict()  {
-        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
-        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
-        Integer [] path = {-2,-2,-2};
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 8, 10, 0, 8);
-        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 12, 13, 0, 1);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
-        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 0, 12, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(8, 12, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow1);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(8,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
-        assertEquals(-1, (int)path[0]);
-    }
-
-    //The AGV at node 8 wants to choose to go node 6, but the path does not exist.
-    @Test
-    public void shouldAGVCannotGoWhenPathNotExists()  {
-        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
-        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
-        Integer [] path = {-2,-2,-2};
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        TimeWindow reservedAGVTimeWindow = new TimeWindow(7, 8, 9, -1, -1);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(5, 0, CommonConstant.INFINITE, -1, -1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 0, 18, -1, -1);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 18, CommonConstant.INFINITE, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(5).add(freeAGVTimeWindow1);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(5,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
-        assertEquals(-1, (int)path[0]);
-    }
-
-    //The AGV at node 8 wants to choose to go node 9, but the first free time window is not available. So the expected behavior is that the AGV slows down and choose the later time window
-    @Test
-    public void shouldAGVGoCorrectlyWhenSomeTimeWindowIsNotAvailable() {
-        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
-        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
-        Integer [] path = {-2,-2,-2};
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
-        double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
-        TimeWindow reservedAGVTimeWindow0 = new TimeWindow(7, 8, 9, 1, 1);
-        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
-        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing-0.1, timeCrossCrossing+6, 2, 1);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow0);
-        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
-        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 9, timeCrossCrossing-0.1, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, 22, -1, -1);
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(8,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) timeCrossCrossing+6, timeGoThroughPath);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
+        assertEquals((double)timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
         assertEquals(-1, (int)path[2]);
     }
 
-    //The AGV at node 8 wants to choose to go node 9, and the first free time window is available
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 to 8
+    @Test
+    public void shouldAGVCannotGoWhenGoingToThePathWillCauseHeadOnConflict() {
+        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
+        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
+        Integer [] path = {-2,-2,-2};
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        //AGV 2
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 9, 10, 0, 7);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 0, 9, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 10, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, 22, -1, -1);
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
+        assertEquals(-1, (int)path[0]);
+    }
+
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 8 to 9 latter at first and surpasses the other AGV
+    @Test
+    public void shouldAGVCannotGoWhenGoingToThePathWillCauseCatchUpConflict()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
+        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
+        Integer [] path = {-2,-2,-2};
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 9, 10, 0, 8);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 11, 13, 0, 1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 0, 8, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 0, 11, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 13, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
+        assertEquals(-1, (int)path[0]);
+    }
+
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 8 to 9 latter at first and crosses the path still later
+    @Test
+    public void shouldAGVCanGoWhenGoingToThePathWillNotCauseCatchUpConflict()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
+        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
+        Integer [] path = {-2,-2,-2};
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 9, 10, 0, 8);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 20, 21, 0, 1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 0, 8, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 0, 20, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 21, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
+        assertEquals((double)timeArriveNode9, timeGoThroughPath);
+        assertEquals(7, (int)path[0]);
+        assertEquals(8, (int)path[1]);
+        assertEquals(-1, (int)path[2]);
+    }
+
+
+    //The AGV 1 at node 8 wants to choose to go node 6, but the path does not exist.
+    @Test
+    public void shouldAGVCannotGoWhenPathNotExists()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
+        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
+        Integer [] path = {-2,-2,-2};
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        TimeWindow endTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(5).add(endTimeWindow);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
+        assertEquals(-1, (int)path[0]);
+    }
+
+    //The AGV 1 at node 8 wants to choose to go node 9, but the free time window is not available.
+    @Test
+    public void shouldAGVNotGoWhenTimeWindowIsNotAvailable() {
+        List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
+        List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
+        Integer [] path = {-2,-2,-2};
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
+        double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing-0.1, timeCrossCrossing+6, 2, 1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
+        // subtract 0.1 to not allow the AGV pass
+        TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing-0.1, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
+        assertEquals(-1, (int)path[0]);
+    }
+
+    //The AGV 1 at node 8 wants to choose to go node 9, and the free time window is available
     @Test
     public void shouldAGVGoCorrectlyWhenTimeWindowIsAvailable() {
         List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
         List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
         Integer [] path = {-2,-2,-2};
+        //AGV 1
         TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
-        TimeWindow reservedAGVTimeWindow0 = new TimeWindow(7, 8, 9, 1, 1);
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
-        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing + 0.1, timeCrossCrossing+6, 2, 1);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow0);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing + 0.1, timeCrossCrossing + 6, 2, 1);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 9, timeCrossCrossing + 0.1, -1, -1);
+        // add 0.1 to allow the AGV pass
+        TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing + 0.1, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
         TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
         TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(8,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
@@ -343,25 +411,25 @@ public class TestReachabilityTest {
         List<Queue<TimeWindow>> reservedTimeWindowList = initTimeWindowList();
         List<Queue<TimeWindow>> freeTimeWindowList = initTimeWindowList();
         Integer [] path = {-2,-2,-2};
+        //AGV 1
         TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
-        TimeWindow reservedAGVTimeWindow0 = new TimeWindow(7, 8, 9, 1, 1);
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing, timeCrossCrossing+6, 2, 1);
-        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow0);
+        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 9, timeCrossCrossing, -1, -1);
+        TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
         TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
         TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow);
-        double timeGoThroughPath = routing.testReachabilityForDifferentNode(8,currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+        double timeGoThroughPath = routing.testReachabilityForDifferentTimeWindow(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
