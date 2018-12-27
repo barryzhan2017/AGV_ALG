@@ -83,7 +83,7 @@ public class PreprocessData {
 
     //从json中拿出每个小车的当前运行路径，或者可以拿出所有buffer的地图路径
     public List<List<Integer>> getPaths(List<List<Map>> paths) {
-        List<List<Integer>> ongoingPaths = new ArrayList<List<Integer>>();
+        List<List<Integer>> ongoingPaths = new ArrayList<>();
         for (int i = 0; i < paths.size(); i++) {
             List<Integer> AGVPath = new ArrayList<Integer>();
             //对每条路径增加节点循环

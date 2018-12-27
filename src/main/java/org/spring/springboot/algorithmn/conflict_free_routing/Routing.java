@@ -1,54 +1,170 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
 
 import org.spring.springboot.algorithmn.common.CommonConstant;
-import org.spring.springboot.algorithmn.exception.InvalidReachingTimeException;
 
 
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
 //This is the algorithm to calculate the conflict-free route for one AGV given the current time windows.
 public class Routing {
 
-    //The time window the AGV can travel, each row is for a specific node
+    //All of the info in free and reserved should be initialized from other methods
+    //The time window the AGV can travel, each row is for a specific node.
     private List<Queue<TimeWindow>> freeTimeWindowList;
     //The time window is reserved by other AGVs, each row is for a specific node
     private List<Queue<TimeWindow>> reservedTimeWindowList;
     //The task for the specific AGV to finish
     private int[] task;
     private double[][] graph;
-    //Current time window the AGV occupies
+    //Current time window the AGV occupies. It contains the time the AGV is available.
     private TimeWindow currentTimeWindow;
-    //consider the buffer information. how to get
+    //Consider the buffer information by conversing the graph to the special one with buffer added to it
+    //Use map to store the mapped buffer node value
+    private HashMap<Integer, Integer> graphNodeToBuffer = new HashMap<>();
+    private double speed;
 
     public Routing() {
 
     }
 
-    public Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, int[] task, double[][] graph, TimeWindow currentTimeWindow) {
+    public Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, int[] task, double[][] graph, TimeWindow currentTimeWindow, List<List<Integer>> bufferSet, double speed) {
         this.freeTimeWindowList = freeTimeWindowList;
         this.reservedTimeWindowList = reservedTimeWindowList;
         this.task = task;
-        this.graph = graph;
+        this.graph = initializeGraphWithBufferEndNode(graph, bufferSet);
         this.currentTimeWindow = currentTimeWindow;
+        this.speed = speed;
     }
 
 
-//    //Get the route of the AGV by applying conflict-free routing algorithm
-//    public List<Integer> route() {
-//
-//    }
+    /**
+     * Get the route of the AGV by applying conflict-free routing algorithm
+     * @return The specific path given the task
+     */
+    public List<Integer> getRoute() {
+        List<Integer> path = new ArrayList<>();
+        int sourceNode = task[0];
+        int endNode = task[1];
+        //The time window has been included in the path
+        List<TimeWindow> occupiedTimeWindow = new ArrayList<>();
+        //The time window is free and possibly reachable.
+        List<TimeWindow> possibleTimeWindow = new ArrayList<>();
+        TimeWindow headTimeWindow = currentTimeWindow;
+        //Find all the elements that are reachable from the occupied time window
+        for (Queue<TimeWindow> possibleNextTimeWindowQueue : freeTimeWindowList) {
+            for (TimeWindow possibleNextTimeWindow : possibleNextTimeWindowQueue) {
+                findPossibleNextTimeWindow(possibleNextTimeWindow, occupiedTimeWindow, possibleTimeWindow);
+            }
+        }
+        occupiedTimeWindow.add(currentTimeWindow);
+        return path;
+    }
+
+    /**
+     * Labeling process
+     * Check if the time window that is reachable form the occupied time window, if so, add it to the possible time window
+     * If the time cost is less, change the current time window, path and time of the possible next time window to the less one.
+     * @param possibleNextTimeWindow
+     * @param occupiedTimeWindow All of the current time windows having the minimum distance path
+     * @param possibleTimeWindow possible time window that can be reached
+     */
+    private void findPossibleNextTimeWindow(TimeWindow possibleNextTimeWindow, List<TimeWindow> occupiedTimeWindow, List<TimeWindow> possibleTimeWindow) {
+        //Time window, time and path for the least time
+        double minimumTimeToReachTimeWindow = CommonConstant.INFINITE;
+        TimeWindow minimumTimeWindow = null;
+        Integer[] minimumPath = {-1, -1, -1};
+        //Find the least time required to go to the time window
+        for (TimeWindow headTimeWindow: occupiedTimeWindow) {
+            double timeToReachTimeWindow = CommonConstant.INFINITE;
+            Integer[] possiblePath = {-1, -1, -1};
+            //Not the same time window in the occupied time window
+            if (!occupiedTimeWindow.contains(possibleNextTimeWindow)) {
+                //It has the same node number, test the reachability by using the testReachabilityForSameNode
+                if (headTimeWindow.getNodeNumber() == possibleNextTimeWindow.getNodeNumber()) {
+                    timeToReachTimeWindow = testReachabilityForSameNode(possibleNextTimeWindow, headTimeWindow, possiblePath, speed);
+                }
+                //It has the different node number, test the reachability by using the testReachabilityForDifferentNode
+                else if (headTimeWindow.getNodeNumber() != possibleNextTimeWindow.getNodeNumber()) {
+                    timeToReachTimeWindow = testReachabilityForDifferentNode(possibleNextTimeWindow, headTimeWindow, possiblePath, speed);
+                }
+            }
+            if (timeToReachTimeWindow < minimumTimeToReachTimeWindow) {
+                minimumTimeToReachTimeWindow = timeToReachTimeWindow;
+                minimumPath = possiblePath;
+                minimumTimeWindow = headTimeWindow;
+            }
+        }
+        // Less time required to go for the time window, so change the previous one
+        if (minimumTimeToReachTimeWindow < possibleNextTimeWindow.getLeastTimeReachHere()) {
+            possibleNextTimeWindow.setLeastTimeReachHere(minimumTimeToReachTimeWindow);
+            possibleNextTimeWindow.setPath(minimumPath);
+            possibleNextTimeWindow.setLastTimeWindow(minimumTimeWindow);
+        }
+        //Add it to the possible time window if it's reachable and it's not in the list
+        if (possibleNextTimeWindow.getLeastTimeReachHere() < CommonConstant.INFINITE && !possibleTimeWindow.contains(possibleNextTimeWindow)) {
+            possibleTimeWindow.add(possibleNextTimeWindow);
+        }
+
+    }
+
+
+    //for testing
+    public Map<Integer, Integer> getGraphNodeToBuffer() {
+        return graphNodeToBuffer;
+    }
+
+    /**
+     * Put the buffer end node into the graph to create a new graph, note that the buffer end node cannot be reached outsides (one-direction)
+     * @param graph Original graph without adding buffer node
+     * @param bufferSet A list stores the path of all buffers
+     * @return Special graph contains the end node of buffers
+     */
+    public double[][] initializeGraphWithBufferEndNode(double[][] graph, List<List<Integer>> bufferSet) {
+        if (bufferSet == null) {
+            return  graph;
+        }
+        int originalGraphSize = graph[0].length;
+        int bufferNumber = bufferSet.size();
+        int newGraphSize = originalGraphSize + bufferNumber;
+        double[][] newGraph = new double[newGraphSize][newGraphSize];
+        for (int i = 0; i < newGraphSize; i++) {
+            for (int j = 0; j < newGraphSize; j++) {
+                //The original graph should be reserved
+                if (i < originalGraphSize && j < originalGraphSize) {
+                    newGraph[i][j] = graph[i][j];
+                }
+                //The other part should remain infinite at first
+                else {
+                    newGraph[i][j] = CommonConstant.INFINITE;
+                }
+            }
+        }
+        //Number of buffer
+        int index = 0;
+        //To store the actual number of the node into the map to fetch and set the linking relationship between buffer end node and graph node
+        for (List<Integer> bufferPath : bufferSet) {
+            int bufferSize = bufferPath.size();
+            int actualNodeNumber = bufferPath.get(bufferSize - 2);
+            int nodeLinkingBufferAndGraph = bufferPath.get(bufferSize - 1);
+            graphNodeToBuffer.put(originalGraphSize + index, actualNodeNumber);
+            newGraph[index + originalGraphSize][nodeLinkingBufferAndGraph] = CommonConstant.BUFFER_PATH_LENGTH;
+            index++;
+        }
+        return newGraph;
+    }
+
+
+
 
 
     /**
-     *
+     *@param endTimeWindow Possible Destination time window
      * @param currentTimeWindow Current status of the vehicle
      * @param path Path if the end node can be reached
      * @param speed
      * @return Time required to go for the path, to the end node
      */
-    public double testReachabilityForSameTimeWindow(TimeWindow currentTimeWindow, Integer[] path, double speed) {
+    public double testReachabilityForSameNode(TimeWindow endTimeWindow, TimeWindow currentTimeWindow, Integer[] path, double speed) {
 
         return -1;
 
@@ -62,7 +178,7 @@ public class Routing {
      * @param speed
      * @return Time required to go for the path, to the end node
      */
-     public double testReachabilityForDifferentTimeWindow(TimeWindow endTimeWindow, TimeWindow currentTimeWindow, Integer[] path, double speed) {
+     public double testReachabilityForDifferentNode(TimeWindow endTimeWindow, TimeWindow currentTimeWindow, Integer[] path, double speed) {
         int startNode = currentTimeWindow.getNodeNumber();
         double currentAGVStartTime = currentTimeWindow.getEndTime();
         int endNode = endTimeWindow.getNodeNumber();

@@ -3,6 +3,7 @@ package org.spring.springboot.algorithmn.test;
 import org.junit.Before;
 import org.junit.Test;
 import org.spring.springboot.algorithmn.genetic_algorithm.ConflictAvoid;
+import org.spring.springboot.algorithmn.test.common.CommonTestConstant;
 import org.ujmp.core.Matrix;
 
 import java.io.File;
@@ -31,25 +32,7 @@ public class ConflictAvoidTest {
         Integer[] bufferForAGV = {0,1,0,1};
         int penalty = 999;
         double safeDistance = 2*0.7;
-        List<List<Integer>> bufferPath = new ArrayList<List<Integer>>();
-        List<Integer> bufferPath1 = new ArrayList<Integer>();
-        bufferPath1.add(2);
-        bufferPath1.add(101);
-        bufferPath1.add(102);
-        bufferPath1.add(103);
-        bufferPath1.add(104);
-        bufferPath1.add(105);
-        bufferPath1.add(3);
-        List<Integer> bufferPath2 = new ArrayList<Integer>();
-        bufferPath2.add(0);
-        bufferPath2.add(201);
-        bufferPath2.add(202);
-        bufferPath2.add(203);
-        bufferPath2.add(204);
-        bufferPath2.add(205);
-        bufferPath2.add(7);
-        bufferPath.add(bufferPath1);
-        bufferPath.add(bufferPath2);
+        List<List<Integer>> bufferPath = CommonTestConstant.getBufferForTestGraph2();
         Double[] timeAlreadyPass = {-1.0000,-1.0000,-1.0000,-1.0000};
         conflictAvoid = new ConflictAvoid(AGVSpeed,AGVNumber,timeAlreadyPass,minDistance/AGVSpeed,
                 minDistance,penalty,safeDistance,graph,bufferPath,bufferForAGV);

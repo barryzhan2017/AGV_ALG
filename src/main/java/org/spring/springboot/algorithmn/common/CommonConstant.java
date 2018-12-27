@@ -6,5 +6,6 @@ public class CommonConstant {
     //The distance for a AGV to cross the crossing to the other road.
     public static final double CROSSING_DISTANCE = 4;
     public static final double AGV_LENGTH = 1;
+    public static final double BUFFER_PATH_LENGTH = 2;
 
 }
