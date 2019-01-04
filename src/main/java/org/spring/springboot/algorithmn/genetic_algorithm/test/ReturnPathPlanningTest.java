@@ -1,4 +1,4 @@
-package org.spring.springboot.algorithmn.test;
+package org.spring.springboot.algorithmn.genetic_algorithm.test;
 
 import org.junit.Before;
 import org.junit.Test;
