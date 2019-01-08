@@ -1,4 +1,6 @@
 package org.spring.springboot.algorithmn.genetic_algorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ujmp.core.Matrix;
 
 import java.util.*;
@@ -6,6 +8,7 @@ import java.util.*;
 //前端传的ongoingAGVPaths不要有个-1位
 //前端传的timeAlreadyPassing用-1表示空闲
 public class AGV_GA {
+    public final Logger logger = LoggerFactory.getLogger(getClass());
     private Matrix graph;
     private int populationGen;
     private FeasiblePathGrowth feasiblePathGrowth;//用来生成路径
@@ -111,7 +114,7 @@ public class AGV_GA {
         //开始进化
         //当连续10代适应度平均值没变化且循环次数大于最小代数，或者到达最大代数收敛结束进化,下面有break语句
         while (true) {
-            System.out.println("进化第"+evolveTimes+"轮啦");
+            logger.info("Evolve to {} Generation", evolveTimes);
             //更新概率矩阵
             initializeCrossoverProbability();
             //交叉 taskDistribution
@@ -169,7 +172,7 @@ public class AGV_GA {
             //第i代
             int i = 0;
 
-            System.out.println("当前子代数：" + populationGen);
+            logger.info("This is Generation {}", populationGen);
 
             for (List<List<Integer>> generationForAGVPaths : localAGVPaths) {
                 //未分配完所有任务时，分配任务, 小车
@@ -195,7 +198,6 @@ public class AGV_GA {
                     int firstNodeToGraph = buffer.get(buffer.size() - 2);
                     int nodeBothInGraphAndBuffer = buffer.get(buffer.size() - 1);
                     if (startPoint == firstNodeToGraph) {
-
                         AGVRecord bufferRecord = new AGVRecord(path1StartIndex, path1StartIndex + 1, firstNodeToGraph,
                                 nodeBothInGraphAndBuffer, minDistance, -1, true, AGVSpeed);
                         currentAGVRecords.add(bufferRecord);
@@ -266,7 +268,7 @@ public class AGV_GA {
                 ,2 * taskNumber,localAGVTimes.get(i),localAGVRecord.get(i),feasiblePathGrowth,bufferForAGV,bufferSet,AGVSpeed,minDistance);
                 i++;
             }
-            System.out.println("路径" + localAGVPaths);
+            logger.info("Path is {}", localAGVPaths);
             pathImprovement.improvePath(localAGVRecord,priorityChromosomeSet,previousPopulationGen,localAGVPaths,AGVSpeed);
 
             //删除掉走了非法路径的子代
@@ -274,10 +276,10 @@ public class AGV_GA {
             //更新人口
 
             populationGen = priorityChromosomeSet.size();
-            System.out.println("当前子代数：" + populationGen);
+            logger.info("Generation after computing is {}", populationGen);
 
             //计算fitness，对出现碰撞的规划增加penalty，碰撞越多penalty越大
-            conflictAvoid.conflictAvoid(localAGVPaths, localAGVFitness);
+//            conflictAvoid.conflictAvoid(localAGVPaths, localAGVFitness);
 
             //将子代和父代和在一块
             AGVFitness.addAll(localAGVFitness);
@@ -319,7 +321,7 @@ public class AGV_GA {
 
             //采用精英保留策略，获取当前的精英，跳过选择交叉和变异直接保留且替换掉最差的子代
             int index = elitistPreservation(adjustFitness);
-            System.out.println("最优子代适应度："+adjustFitness[index]);
+            logger.info("Best generation fitness is {}", adjustFitness[index]);
             taskDistributionElitist = taskDistribution.get(index);
             priorityChromosomeSetElitist = priorityChromosomeSet.get(index);
             AGVFitnessElitist = AGVFitness.get(index);
@@ -367,12 +369,12 @@ public class AGV_GA {
             currentMeanFitness /= populationGen;
             currentMeanDistance /= populationGen;
             //调整变异和交叉的概率
-            System.out.println("当前距离"+currentMeanDistance+"之前距离"+previousMeanDistance);
+            logger.info("Current distance is " + currentMeanDistance + ", previous distance is "+previousMeanDistance);
             regulateProbability(previousMeanDistance,currentMeanDistance);
 
-            System.out.println("当前变异概率" + mutationProbability + "  当前交叉概率" + crossoverProbability);
+            logger.info("Current mutation probability is " + mutationProbability + ", current crossover probability is" + crossoverProbability);
 
-            System.out.println("当前适应度" + currentMeanFitness + "  之前的适应度" + previousMeanFitness + " 稳定次数"+stableTimes);
+            logger.info("Current fitness is " + currentMeanFitness + ", previous fitness is " + previousMeanFitness + ", stable times are "+stableTimes);
 
             //更新适应度稳定次数，如果不连续则重新开始计算
             if (currentMeanFitness - previousMeanFitness < currentMeanFitness*RELATIVE_ERROR &&
@@ -383,7 +385,7 @@ public class AGV_GA {
                 stableTimes = 0;
             }
 
-            System.out.println("当前子代数：" + populationGen);
+            logger.info("Current population is " + populationGen);
 
             //当连续10代适应度平均值没变化且循环次数大于最小代数，或者到达最大代数收敛结束进化
             if (((stableTimes >= 10 && evolveTimes > MIN_GENERATION) || evolveTimes > MAX_GENERATION )) {
@@ -394,7 +396,7 @@ public class AGV_GA {
 
             evolveTimes++;
             for (double[] fitness : AGVFitness) {
-                System.out.println("AGV的适应度" + Matrix.Factory.importFromArray(fitness));
+                logger.info("AGV Fitness is " + Matrix.Factory.importFromArray(fitness));
             }
 //            for (List<List<Integer>> generationForAGVPaths : AGVPaths) {
 //                System.out.println("当前子代的路径");
@@ -431,9 +433,8 @@ public class AGV_GA {
             }
         }
         bestGenRecords.addAll(AGVRecords.get(maxFitnessGeneration));
-        System.out.println(AGVRecords.get(maxFitnessGeneration));
-        System.out.println("最佳路径" + AGVPaths.get(maxFitnessGeneration)+" 它的适应度" + adjustFitness[maxFitnessGeneration]
-                +"它的距离" + 1/adjustFitness[maxFitnessGeneration]);
+//        System.out.println(AGVRecords.get(maxFitnessGeneration));
+        logger.info("Best route is {}, its fitness is {1}, its distance is {2}", AGVPaths.get(maxFitnessGeneration), adjustFitness[maxFitnessGeneration], 1/adjustFitness[maxFitnessGeneration]);
         return AGVPaths.get(maxFitnessGeneration);
     }
 

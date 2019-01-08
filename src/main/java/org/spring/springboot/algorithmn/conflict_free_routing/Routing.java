@@ -1,6 +1,5 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
 
-import org.apache.hadoop.io.Text;
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.exception.NoPathFeasibleException;
 
@@ -184,7 +183,7 @@ public class Routing {
      *@param endTimeWindow Possible Destination time window
      * @param currentTimeWindow Current status of the vehicle
      * @param path Path if the end node can be reached
-     * @param speed
+     * @param speed Speed of AGV
      * @return Time required to go for the path, to the end node
      */
      double testReachabilityForSameNode(TimeWindow endTimeWindow, TimeWindow currentTimeWindow, Integer[] path, double speed) {
@@ -339,8 +338,8 @@ public class Routing {
 
     /**
      * Test if the free time window has enough time to let the AGV pass the crossing
-     * @param timeToReachCrossing
-     * @param speed
+     * @param timeToReachCrossing Time to arrive the start point of the crossing
+     * @param speed Speed of AGV
      * @param startTime Start time of the possible free time window
      * @param endTime End time of the possible free time window
      * @return The time to reach the crossing if the free time window has enough time or -1 if not enough time

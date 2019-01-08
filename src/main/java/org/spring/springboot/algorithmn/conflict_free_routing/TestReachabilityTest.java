@@ -39,7 +39,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 12, 15, 0, 3);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noHeadConflict = routing.noHeadOnConflict(8,7,7,8);
         assertFalse(noHeadConflict);
     }
@@ -57,7 +57,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 12, 15, 0, 3);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noHeadConflict = routing.noHeadOnConflict(8,7,7,20);
         assertFalse(noHeadConflict);
     }
@@ -75,7 +75,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 5, 6, 0, 3);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noHeadConflict = routing.noHeadOnConflict(8,7,7,20);
         assertTrue(noHeadConflict);
     }
@@ -92,7 +92,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 6, 7, 0, 3);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noHeadConflict = routing.noHeadOnConflict(8,7,8,20);
         assertTrue(noHeadConflict);
     }
@@ -109,7 +109,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noCatchUpConflict = routing.noCatchUpConflict(8, 7, 5, 20);
         assertFalse(noCatchUpConflict);
     }
@@ -126,7 +126,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 12, 15, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noCatchUpConflict = routing.noCatchUpConflict(8, 7, 9, 20);
         assertFalse(noCatchUpConflict);
     }
@@ -143,7 +143,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noCatchUpConflict = routing.noCatchUpConflict(8, 7, 9, 20);
         assertTrue(noCatchUpConflict);
     }
@@ -160,7 +160,7 @@ public class TestReachabilityTest {
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 18, 20, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         boolean noCatchUpConflict = routing.noCatchUpConflict(8, 7, 9, 20);
         assertTrue(noCatchUpConflict);
     }
@@ -211,7 +211,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         assertEquals((double)timeArriveNode9, timeGoThroughPath);
@@ -246,7 +246,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
         assertEquals(-1, (int)path[0]);
@@ -276,7 +276,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(8).add(endTimeWindow);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
         assertEquals(-1, (int)path[0]);
@@ -306,7 +306,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(8).add(endTimeWindow);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         assertEquals((double)timeArriveNode9, timeGoThroughPath);
@@ -332,7 +332,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(5).add(endTimeWindow);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
         assertEquals(-1, (int)path[0]);
@@ -363,7 +363,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
         assertEquals(-1, (int)path[0]);
@@ -394,7 +394,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
@@ -426,7 +426,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
@@ -492,7 +492,7 @@ public class TestReachabilityTest {
         freeTimeWindowList.get(3).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(9).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(9).add(freeAGVTimeWindow4);
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, null, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode4, timeGoThroughPath);
         assertEquals(9, (int)path[0]);
