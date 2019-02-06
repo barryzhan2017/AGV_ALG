@@ -4,9 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.CommonTestConstant;
-import org.ujmp.core.Matrix;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -31,7 +28,6 @@ public class TestReachabilityTest {
     //The other AGV time interval for this path includes this ongoing AGV's time interval.
     @Test
     public void shouldOtherAGVComeInReverseDirectionCauseHeadOnConflictInScenario1() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8,4,7,1,7);
@@ -48,7 +44,6 @@ public class TestReachabilityTest {
     //The other AGV start time is earlier than this ongoing AGV but the leave time is earlier than it
     @Test
     public void shouldOtherAGVComeInReverseDirectionCauseHeadOnConflictInScenario2() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
 
@@ -67,7 +62,6 @@ public class TestReachabilityTest {
     //The other AGV start time is earlier than this ongoing AGV and the leave time is earlier than its start time also
     @Test
     public void shouldOtherAGVComeInReverseDirectionCauseHeadOnConflictInScenario3() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8,6.5,7,1,7);
@@ -84,7 +78,6 @@ public class TestReachabilityTest {
     //The other AGV start time is earlier than this ongoing AGV and the leave time is equal to its start time to go into to the path
     @Test
     public void shouldOtherAGVComeInReverseDirectionCauseHeadOnConflictInScenario4() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8,7,8,1,7);
@@ -101,7 +94,6 @@ public class TestReachabilityTest {
     //The other AGV comes earlier and leave later.
     @Test
     public void shouldOtherAGVComeInSameDirectionCauseCatchUpConflictInScenario1() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8, 4, 5, 1, 7);
@@ -118,7 +110,6 @@ public class TestReachabilityTest {
     //The other AGV comes later and leave earlier.
     @Test
     public void shouldOtherAGVComeInSameDirectionCauseCatchUpConflictInScenario2() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8, 8, 9, 1, 7);
@@ -135,7 +126,6 @@ public class TestReachabilityTest {
     //The other AGV comes later and leave later.
     @Test
     public void shouldOtherAGVComeInSameDirectionCauseCatchUpConflictInScenario3() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8, 8, 9, 1, 7);
@@ -152,7 +142,6 @@ public class TestReachabilityTest {
     //The other AGV comes earlier and leave earlier.
     @Test
     public void shouldOtherAGVComeInSameDirectionCauseCatchUpConflictInScenario4() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         TimeWindow currentTimeWindow = new TimeWindow(8, 8, 9, 1, 7);
@@ -166,7 +155,7 @@ public class TestReachabilityTest {
     }
 
     @Test
-    public void shouldAGVCannotPassCrossingWhenHavingNoEnoughTimeRegardingTimeWinodwInterval() {
+    public void shouldAGVNotPassCrossingWhenHavingNoEnoughTimeRegardingTimeWinodwInterval() {
         Routing routing = new Routing();
         assertEquals(-1.0, routing.timeToReachCrossing(5,0.5,3,6));
     }
@@ -187,30 +176,25 @@ public class TestReachabilityTest {
 
     //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 to 8 the other time later
     @Test
-    public void shouldAGVCanGoWhenGoingToThePathWillNotCauseHeadOnConflict() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+    public void shouldAGVGoWhenGoingToThePathWillNotCauseHeadOnConflict() {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, 22, 1, -1,6);
         //AGV 2
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 18, 19, 0, 7);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         //leave enough time for the AGV to not miss the time availability to cross the crossing
         TimeWindow endTimeWindow = new TimeWindow(8, 0, 18, -1, -1);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 18, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, 22, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 19, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
         freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
@@ -222,30 +206,25 @@ public class TestReachabilityTest {
 
     //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 to 8
     @Test
-    public void shouldAGVCannotGoWhenGoingToThePathWillCauseHeadOnConflict() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+    public void shouldAGVNotGoWhenGoingToThePathWillCauseHeadOnConflict() {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, 22, 1, -1, 6);
         //AGV 2
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 9, 10, 0, 7);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 22, 23, 0, 3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         TimeWindow freeAGVTimeWindow1 = new TimeWindow(8, 0, 9, -1, -1);
         //leave enough time for the AGV to not miss the time availability to cross the crossing
         TimeWindow endTimeWindow = new TimeWindow(8, 10, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, 22, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 23, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow1);
         freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
@@ -254,27 +233,24 @@ public class TestReachabilityTest {
 
     //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 8 to 9 latter at first and surpasses the other AGV
     @Test
-    public void shouldAGVCannotGoWhenGoingToThePathWillCauseCatchUpConflict()  {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+    public void shouldAGVNotGoWhenGoingToThePathWillCauseCatchUpConflict()  {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, 9, 1, -1, 6);
         // AGV 0
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 9, 10, 0, 8);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 11, 13, 0, 1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 0, 11, -1, -1);
+        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, 0, 11, -1, -1);
         //leave enough time for the AGV to not miss the time availability to cross the crossing
         TimeWindow endTimeWindow = new TimeWindow(8, 13, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow1);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(8).add(endTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
@@ -284,32 +260,29 @@ public class TestReachabilityTest {
 
     //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 8 to 9 latter at first and crosses the path still later
     @Test
-    public void shouldAGVCanGoWhenGoingToThePathWillNotCauseCatchUpConflict()  {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+    public void shouldAGVGoWhenGoingToThePathWillNotCauseCatchUpConflict()  {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, 9, 1, -1, 6);
         // AGV 0
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 9, 10, 0, 8);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 20, 21, 0, 1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
-        TimeWindow freeAGVTimeWindow1 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
         //leave enough time for the AGV to not miss the time availability to cross the crossing
         TimeWindow endTimeWindow = new TimeWindow(8, 0, 20, -1, -1);
+        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 10, CommonConstant.INFINITE, -1, -1);
         TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 21, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow1);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
         freeTimeWindowList.get(8).add(endTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
-        assertEquals((double)timeArriveNode9, timeGoThroughPath);
+        assertEquals(timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
         assertEquals(-1, (int)path[2]);
@@ -318,20 +291,15 @@ public class TestReachabilityTest {
 
     //The AGV 1 at node 8 wants to choose to go node 6, but the path does not exist.
     @Test
-    public void shouldAGVCannotGoWhenPathNotExists()  {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+    public void shouldAGVNotGoWhenPathNotExists()  {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1, 6);
         TimeWindow endTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow2 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(5).add(endTimeWindow);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
@@ -341,28 +309,23 @@ public class TestReachabilityTest {
     //The AGV 1 at node 8 wants to choose to go node 9, but the free time window is not available.
     @Test
     public void shouldAGVNotGoWhenTimeWindowIsNotAvailable() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
-        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
-        double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1, 6);
+        double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED + 9;
+        double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH / CommonTestConstant.AGV_SPEED;
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
-        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing-0.1, timeCrossCrossing+6, 2, 1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing-0.1, timeCrossCrossing + 6, 2, 1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
         // subtract 0.1 to not allow the AGV pass
         TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing-0.1, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) CommonConstant.INFINITE, timeGoThroughPath);
@@ -372,31 +335,26 @@ public class TestReachabilityTest {
     //The AGV 1 at node 8 wants to choose to go node 9, and the free time window is available
     @Test
     public void shouldAGVGoCorrectlyWhenTimeWindowIsAvailable() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1, 6);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing + 0.1, timeCrossCrossing + 6, 2, 1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
         // add 0.1 to allow the AGV pass
         TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing + 0.1, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) timeArriveNode9, timeGoThroughPath);
+        assertEquals(timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
         assertEquals(-1, (int)path[2]);
@@ -405,30 +363,25 @@ public class TestReachabilityTest {
     //The AGV at node 8 wants to choose to go node 9, and the first free time window is just long enough to cross.
     @Test
     public void shouldAGVGoCorrectlyWhenTimeWindowIsJustAvailable() {
-        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(7, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1, 6);
         double timeArriveNode9 = (10 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         double timeCrossCrossing = timeArriveNode9 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 0, 9, 0, 1);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing, timeCrossCrossing+6, 2, 1);
-        reservedTimeWindowList.get(7).add(currentTimeWindow);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
         TimeWindow endTimeWindow = new TimeWindow(8, 9, timeCrossCrossing, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(8, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 9, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(8).add(endTimeWindow);
         freeTimeWindowList.get(8).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
-        assertEquals((double) timeArriveNode9, timeGoThroughPath);
+        assertEquals(timeArriveNode9, timeGoThroughPath);
         assertEquals(7, (int)path[0]);
         assertEquals(8, (int)path[1]);
         assertEquals(-1, (int)path[2]);
@@ -476,22 +429,18 @@ public class TestReachabilityTest {
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
         Integer [] path = {-2,-2,-2};
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(9, 8, 9, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 1, -1, 6);
         double timeArriveNode4 = (2 - CommonConstant.AGV_LENGTH)/CommonTestConstant.AGV_SPEED + 9;
         double timeCrossCrossing = timeArriveNode4 + CommonConstant.CROSSING_DISTANCE/CommonTestConstant.AGV_SPEED + CommonConstant.AGV_LENGTH/CommonTestConstant.AGV_SPEED;
         TimeWindow reservedAGVTimeWindow1 = new TimeWindow(3, 0, 9, 0, 1);
         TimeWindow reservedAGVTimeWindow2 = new TimeWindow(3, timeCrossCrossing, timeCrossCrossing + 6, 2, 1);
-        reservedTimeWindowList.get(9).add(currentTimeWindow);
         reservedTimeWindowList.get(3).add(reservedAGVTimeWindow1);
         reservedTimeWindowList.get(3).add(reservedAGVTimeWindow2);
         TimeWindow endTimeWindow = new TimeWindow(3, 9, timeCrossCrossing, -1, -1);
         TimeWindow freeAGVTimeWindow2 = new TimeWindow(3, timeCrossCrossing+6, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeAGVTimeWindow3 = new TimeWindow(9, 0, 8, -1, -1);
-        TimeWindow freeAGVTimeWindow4 = new TimeWindow(9, 9, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(3).add(endTimeWindow);
+        freeTimeWindowList.get(9).add(currentTimeWindow);
         freeTimeWindowList.get(3).add(freeAGVTimeWindow2);
-        freeTimeWindowList.get(9).add(freeAGVTimeWindow3);
-        freeTimeWindowList.get(9).add(freeAGVTimeWindow4);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
         double timeGoThroughPath = routing.testReachabilityForDifferentNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals((double) timeArriveNode4, timeGoThroughPath);
@@ -500,7 +449,110 @@ public class TestReachabilityTest {
         assertEquals(-1, (int)path[2]);
     }
 
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 wants to loop at the end node 9 and goes to node 4
+    @Test
+    public void shouldHeadOnConflictHappenWhenOtherAGVLoopsAtTheEndOfThePathBlockingThePath()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1,6);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 7, 10, 0, 8);
+        reservedAGVTimeWindow1.setPath(new Integer[]{8, 7, 8});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 16, 18, 0, 3);
+        reservedAGVTimeWindow2.setPath(new Integer[]{8, 3, -1});
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 0, 7, -1, -1);
+        TimeWindow endTimeWindow = new TimeWindow(8, 10, 16, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(8, 18, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        boolean noHeadOnConflict = routing.noHeadOnConflict(7,8,9, (10 - CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED + 9);
+        assertFalse(noHeadOnConflict);
+    }
 
+    //The AGV 1 at node 8 wants to choose to go node 9, and the other AGV 0 comes from 9 wants to loop at the end node 9 and leaves earlier than the AGV 1
+    @Test
+    public void shouldHeadOnConflictNotHappenWhenOtherAGVLoopsAtTheEndOfThePathNotBlockingThePathLater()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 0, CommonConstant.INFINITE, 1, -1,6);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 7, 10, 0, 8);
+        reservedAGVTimeWindow1.setPath(new Integer[]{8, 7, 8});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(8, 12, 15, 0, 3);
+        reservedAGVTimeWindow2.setPath(new Integer[]{8, 3, -1});
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(8, 0, 7, -1, -1);
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(8, 10, 12, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 15, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(8).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null, CommonTestConstant.AGV_SPEED);
+        boolean noHeadOnConflict = routing.noHeadOnConflict(7,8,9,  15);
+        assertTrue(noHeadOnConflict);
+    }
 
+    //The AGV 1 at node 8 wants to choose to go node 9, but the other AGV 0 comes from 9 wants to loop at the start node 9 and goes to node 4
+    @Test
+    public void shouldCatchUpConflictHappenWhenOtherAGVLoopsAtTheStartOfThePathBlockingThePath()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 6, 16, 1, -1,6);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 4, 6, 0, 7);
+        reservedAGVTimeWindow1.setPath(new Integer[]{7, 8, 7});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 16, 18, 0, 6);
+        reservedAGVTimeWindow2.setPath(new Integer[]{7, 6, -1});
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 0, 4, -1, -1);
+        TimeWindow freeAGVTimeWindow4 = new TimeWindow(7, 18, CommonConstant.INFINITE, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 0, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow4);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        boolean noCatchUpConflict = routing.noCatchUpConflict(7,8,9, (10 - CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED + 9);
+        assertFalse(noCatchUpConflict);
+    }
+
+    //The AGV 1 at node 8 wants to choose to go node 9, and the other AGV 0 comes from 9 wants to loop at the start node 9 and leaves earlier than the AGV 1
+    @Test
+    public void shouldCatchUpConflictNotHappenWhenOtherAGVLoopsAtTheStartOfThePathBlockingThePathEarlier()  {
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(7, 8, CommonConstant.INFINITE, 1, -1,8);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(7, 0, 3, 0, 7);
+        reservedAGVTimeWindow1.setPath(new Integer[]{7, 8, 7});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 6, 8, 0, 6);
+        reservedAGVTimeWindow2.setPath(new Integer[]{7, 6, -1});
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        TimeWindow freeAGVTimeWindow3 = new TimeWindow(7, 3, 6, -1, -1);
+        //leave enough time for the AGV to not miss the time availability to cross the crossing
+        TimeWindow endTimeWindow = new TimeWindow(8, 0, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(7).add(currentTimeWindow);
+        freeTimeWindowList.get(7).add(freeAGVTimeWindow3);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, null,CommonTestConstant.AGV_SPEED);
+        boolean noCatchUpConflict = routing.noCatchUpConflict(7,8,11, (10 - CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED + 11);
+        assertTrue(noCatchUpConflict);
+    }
 
 }

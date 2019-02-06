@@ -40,7 +40,7 @@ public class CommonTestConstant {
 
 
     //Initialize the time window list for the graph
-    public static List<Queue<TimeWindow>>  initTimeWindowList(int graphNodeNumber) {
+    public static List<Queue<TimeWindow>> initTimeWindowList(int graphNodeNumber) {
         List<Queue<TimeWindow>> timeWindowList = new ArrayList<>(graphNodeNumber);
         for (int i = 0; i < graphNodeNumber; i++) {
             PriorityQueue<TimeWindow> timeWindowQueue =
