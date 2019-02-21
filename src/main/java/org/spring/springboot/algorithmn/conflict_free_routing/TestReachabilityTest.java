@@ -555,4 +555,75 @@ public class TestReachabilityTest {
         assertTrue(noCatchUpConflict);
     }
 
+    //Agv 1 starts from node 9 and loops to node 9 again, AGV 0 goes from node 8 to node 9 and backs to node 8 again. Not all paths are blocked.
+    @Test
+    public void shouldLoopSuccessfullyWhenReachabilityIsAvaliableForSomePaths(){
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        Integer [] path = {-2,-2,-2};
+
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(8, 0, 6, 1, -1, 0);
+        // AGV 0
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7,6,7,0,8);
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(8, 8, 9, 0, 7);
+
+        reservedTimeWindowList.get(8).add(currentTimeWindow);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        reservedAGVTimeWindow1.setLastTimeWindow(reservedAGVTimeWindow2);
+        TimeWindow endTimeWindow = new TimeWindow(8, 10, 12, -1, -1);
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(8).add(currentTimeWindow);
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        double timeGoThrough = routing.testReachabilityForSameNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+
+        assertEquals(8, (int)path[0]);
+        assertTrue(path[1] == 1 || path[1] == 3 || path[1] == 5);
+        assertEquals(8, (int)path[2]);
+        assertEquals(10.0, timeGoThrough);
+    }
+
+
+    //Agv1 loops at node 9，Agv0 goes 2---9---6  Agv2 goes 8---9----4. So AGV cannot loop
+    @Test
+    public void shouldLoopReachabilityIsNotAvaliableWhenAllPathsAreBlocked(){
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        Integer [] path = {-2,-2,-2};
+
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(8, 0, 7, 1, -1, 3);
+        // AGV 0 and 2
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(1, 5, 6, 0, 8);
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 5, 6, 2, 8);
+        TimeWindow reservedAGVTimeWindow3 = new TimeWindow(8, 7, 8, 0, 5);
+        TimeWindow reservedAGVTimeWindow4 = new TimeWindow(8, 8, 9, 2, 3);
+        reservedAGVTimeWindow3.setLastTimeWindow(reservedAGVTimeWindow1);
+        reservedAGVTimeWindow4.setLastTimeWindow(reservedAGVTimeWindow2);
+
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow3);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow4);
+        reservedTimeWindowList.get(1).add(reservedAGVTimeWindow1);
+
+        TimeWindow endTimeWindow = new TimeWindow(8, 10,12, -1, -1);
+
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(8).add(currentTimeWindow);
+
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        double timeGoThrough = routing.testReachabilityForSameNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+
+        assertEquals((double)CommonConstant.INFINITE, timeGoThrough);
+        assertEquals(-1, (int)path[0]);
+        assertEquals(-1, (int)path[1]);
+        assertEquals(-1, (int)path[2]);
+    }
+
+
+
+
 }

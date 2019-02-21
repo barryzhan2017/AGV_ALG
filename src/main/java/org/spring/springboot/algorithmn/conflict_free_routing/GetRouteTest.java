@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.CommonTestConstant;
+import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.exception.NoPathFeasibleException;
 
 import java.io.IOException;
@@ -35,7 +36,8 @@ public class GetRouteTest {
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         int task = 0;
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 1, -1, 0);
+        currentTimeWindow.setFirstStep(true);
         reservedTimeWindowList.get(9).add(currentTimeWindow);
         TimeWindow endTimeWindow = new TimeWindow(0, 0, CommonConstant.INFINITE, -1, -1);
         freeTimeWindowList.get(0).add(endTimeWindow);
@@ -61,10 +63,11 @@ public class GetRouteTest {
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         int task = 0;
         //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, -1, -1);
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
+        currentTimeWindow.setFirstStep(true);
         reservedTimeWindowList.get(9).add(currentTimeWindow);
         TimeWindow endTimeWindow = new TimeWindow(3, 0, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(0).add(endTimeWindow);
+        freeTimeWindowList.get(3).add(endTimeWindow);
         freeTimeWindowList.get(9).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
         List<TimeWindow> occupiedTimeWindow = new ArrayList<>();
@@ -75,7 +78,7 @@ public class GetRouteTest {
         assertEquals(endTimeWindow, possibleTimeWindow.get(0));
         assertEquals(1, occupiedTimeWindow.size());
         assertEquals(currentTimeWindow, occupiedTimeWindow.get(0));
-        assertEquals((2 - 1) / 2.0, endTimeWindow.getLeastTimeReachHere(), 0.000000001);
+        assertEquals((CommonConstant.BUFFER_PATH_LENGTH) / 2.0, endTimeWindow.getLeastTimeReachHere(), 0.000000001);
         assertEquals(currentTimeWindow, endTimeWindow.getLastTimeWindow());
         assertEquals(9, (int) endTimeWindow.getPath()[0]);
         assertEquals(3, (int) endTimeWindow.getPath()[1]);
@@ -93,7 +96,7 @@ public class GetRouteTest {
         //AGV 1
         TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
         currentTimeWindow.setFirstStep(true);
-        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
+        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
         reservedTimeWindowList.get(9).add(reservedTimeWindow);
         //Initialize all the free time windows
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
@@ -106,10 +109,10 @@ public class GetRouteTest {
         assertEquals(4, path.size());
         //Test for the first time window(node 10)
         TimeWindow timeWindow0 = path.get(0);
-        assertEquals(9, timeWindow0.getNodeNumber());
+        //It should be the mappped value for buffer node
+        assertEquals(105, timeWindow0.getNodeNumber());
         assertEquals(null, timeWindow0.getLastTimeWindow());
         assertEquals(0, timeWindow0.getLeastTimeReachHere(), 0.000000001);
-         
         assertEquals(CommonConstant.INFINITE, timeWindow0.getEndTime(), 0.000000001);
         assertEquals(0, timeWindow0.getStartTime(), 0.000000001);
         assertEquals(3, timeWindow0.getNextNodeNumber());
@@ -126,7 +129,7 @@ public class GetRouteTest {
         assertEquals(CommonConstant.INFINITE, timeWindow1.getEndTime(), 0.000000001);
         assertEquals(0, timeWindow1.getStartTime(), 0.000000001);
         assertTrue(timeWindow1.getNextNodeNumber() == 8 || timeWindow1.getNextNodeNumber() == 4);
-        assertEquals(9, (int) timeWindow1.getPath()[0]);
+        assertEquals(105, (int) timeWindow1.getPath()[0]);
         assertEquals(3, (int) timeWindow1.getPath()[1]);
         assertEquals(-1, (int) timeWindow1.getPath()[2]);
 
@@ -166,7 +169,7 @@ public class GetRouteTest {
         assertEquals(freeTimeWindowListForNode4.poll(), new TimeWindow(3, 0,
                 timeToReachNode4, -1, 0));
         assertEquals(freeTimeWindowListForNode4.poll(), new TimeWindow(3,
-                timeToReachNode4 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED,
+                getCrossingTime(timeToReachNode4),
                 CommonConstant.INFINITE, -1, 0));
         Queue<TimeWindow> freeTimeWindowListForNode5 = freeTimeWindowList.get(4);
         Queue<TimeWindow> freeTimeWindowListForNode9 = freeTimeWindowList.get(8);
@@ -174,13 +177,13 @@ public class GetRouteTest {
                 0, CommonConstant.INFINITE, -1, 0)) &&
                 freeTimeWindowListForNode5.poll().equals(new TimeWindow(4,
                 0, timeToReachNode5, -1, 0)) && freeTimeWindowListForNode5.poll().equals(new TimeWindow(4,
-                timeToReachNode5 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED,
+                        getCrossingTime(timeToReachNode5),
                 CommonConstant.INFINITE, -1, 0))) || (freeTimeWindowListForNode5.size() == 1
                 && freeTimeWindowListForNode5.peek().equals(new TimeWindow(4,
                 0, CommonConstant.INFINITE, -1, 0)) &&
                 freeTimeWindowListForNode9.poll().equals(new TimeWindow(8,
                         0, timeToReachNode9, -1, 0)) && freeTimeWindowListForNode9.poll().equals(new TimeWindow(8,
-                timeToReachNode9 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED,
+                        getCrossingTime(timeToReachNode9),
                 CommonConstant.INFINITE, -1, 0))));
         Queue<TimeWindow> freeTimeWindowListForNode6 = freeTimeWindowList.get(5);
         assertEquals(freeTimeWindowListForNode6.poll(), new TimeWindow(5,
@@ -211,8 +214,8 @@ public class GetRouteTest {
         Queue<TimeWindow> reservedTimeWindowListForNode4 = reservedTimeWindowList.get(3);
         assertTrue(reservedTimeWindowListForNode4.peek().getNextNodeNumber() == 8 || reservedTimeWindowListForNode4.peek().getNextNodeNumber() == 4);
         assertEquals(reservedTimeWindowListForNode4.poll(), new TimeWindow(3, 
-                timeToReachNode4, timeToReachNode4 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED,
-                0, 0));
+                timeToReachNode4, getCrossingTime(timeToReachNode4),
+                0, 4));
         Queue<TimeWindow> reservedTimeWindowListForNode5 = reservedTimeWindowList.get(4);
         Queue<TimeWindow> reservedTimeWindowListForNode9 = reservedTimeWindowList.get(8);
         if (!reservedTimeWindowListForNode5.isEmpty()) {
@@ -223,9 +226,9 @@ public class GetRouteTest {
         }
         assertTrue((reservedTimeWindowListForNode9.isEmpty()  &&
                 reservedTimeWindowListForNode5.poll().equals(new TimeWindow(4,
-                        timeToReachNode5, timeToReachNode5 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED,0, 0)))
+                        timeToReachNode5, getCrossingTime(timeToReachNode5),0, 5)))
                  || (reservedTimeWindowListForNode5.isEmpty() && reservedTimeWindowListForNode9.poll().equals(new TimeWindow(8,
-                timeToReachNode9, timeToReachNode9 + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED, 0, 0))));
+                timeToReachNode9, getCrossingTime(timeToReachNode9) , 0, 5))));
         Queue<TimeWindow> reservedTimeWindowListForNode6 = reservedTimeWindowList.get(5);
         assertEquals(-1, reservedTimeWindowListForNode6.peek().getNextNodeNumber());
         assertEquals(reservedTimeWindowListForNode6.poll(), new TimeWindow(5,
@@ -238,6 +241,282 @@ public class GetRouteTest {
         assertTrue(reservedTimeWindowList.get(6).isEmpty());
         assertTrue(reservedTimeWindowList.get(7).isEmpty());
         assertTrue(reservedTimeWindowList.get(10).isEmpty());
+    }
+
+    //Given just one AGV, task started from node 10(start from the first buffer(right one)) to node 6 and one AGV blocks the path from node 4 to node 5 (5->4->3)
+    //Check if the path is 10->4->9->6  and the time calculation is correct.
+    //Check if the free time window and reserved time window is changed correspondingly.
+    @Test
+    public void shouldAGVGoCorrectlyFrom1To6WhenThereIsOneAGVBlockingPath() throws NoPathFeasibleException {
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        int task = 5;
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
+        currentTimeWindow.setFirstStep(true);
+        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
+        TimeWindow reservedTimeWindowForNode5 = new TimeWindow(4, 0, 1, 1, 3);
+        TimeWindow reservedTimeWindowForNode4 = new TimeWindow(3, 5, 8, 1, 2);
+        TimeWindow reservedTimeWindowForNode3 = new TimeWindow(2, 10, CommonConstant.INFINITE, 1, -1);
+        reservedTimeWindowList.get(9).add(reservedTimeWindow);
+        reservedTimeWindowList.get(4).add(reservedTimeWindowForNode5);
+        reservedTimeWindowList.get(3).add(reservedTimeWindowForNode4);
+        reservedTimeWindowList.get(2).add(reservedTimeWindowForNode3);
+        //Initialize all the free time windowsE
+        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5, -1, -1);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10, -1, -1);
+        freeTimeWindowList.get(4).add(freeTimeWindowForNode5);
+        freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
+        freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
+        freeTimeWindowList.get(2).add(freeTimeWindow1ForNode3);
+        for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
+            if (i != 4 && i != 3 && i != 2) {
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                freeTimeWindowList.get(i).add(freeTimeWindow);
+            }
+        }
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        List<TimeWindow> path = routing.getRoute();
+        //The path should be 10->4->9->6
+        assertEquals(4, path.size());
+        //Test for the first time window(node 10)
+        TimeWindow timeWindow0 = path.get(0);
+        //It should be the mappped value for buffer node
+        assertEquals(105, timeWindow0.getNodeNumber());
+        assertEquals(null, timeWindow0.getLastTimeWindow());
+        assertEquals(0, timeWindow0.getLeastTimeReachHere(), 0.000000001);
+        assertEquals(CommonConstant.INFINITE, timeWindow0.getEndTime(), 0.000000001);
+        assertEquals(0, timeWindow0.getStartTime(), 0.000000001);
+        assertEquals(3, timeWindow0.getNextNodeNumber());
+        assertEquals(-1, (int) timeWindow0.getPath()[0]);
+        assertEquals(-1, (int) timeWindow0.getPath()[1]);
+        assertEquals(-1, (int) timeWindow0.getPath()[2]);
+
+        //Test for the second time window(node 4)
+        double timeToReachNode4 = 0 + CommonConstant.BUFFER_PATH_LENGTH / CommonTestConstant.AGV_SPEED;
+        TimeWindow timeWindow1 = path.get(1);
+        assertEquals(3, timeWindow1.getNodeNumber());
+        assertEquals(timeWindow0, timeWindow1.getLastTimeWindow());
+        assertEquals(timeToReachNode4, timeWindow1.getLeastTimeReachHere(), 0.000000001);
+        assertEquals(5, timeWindow1.getEndTime(), 0.000000001);
+        assertEquals(0, timeWindow1.getStartTime(), 0.000000001);
+        assertEquals(8, timeWindow1.getNextNodeNumber());
+        assertEquals(105, (int) timeWindow1.getPath()[0]);
+        assertEquals(3, (int) timeWindow1.getPath()[1]);
+        assertEquals(-1, (int) timeWindow1.getPath()[2]);
+
+        //Test for third time window(node 9)
+        double timeToReachNode9 = timeToReachNode4 + (10 + CommonConstant.CROSSING_DISTANCE) / CommonTestConstant.AGV_SPEED;
+        TimeWindow timeWindow2 = path.get(2);
+        assertEquals(8, timeWindow2.getNodeNumber());
+        assertEquals(timeToReachNode9, timeWindow2.getLeastTimeReachHere(), 0.000000001);
+        assertEquals(timeWindow1, timeWindow2.getLastTimeWindow());
+        assertEquals(CommonConstant.INFINITE, timeWindow2.getEndTime(), 0.000000001);
+        assertEquals(0, timeWindow2.getStartTime(), 0.000000001);
+        assertEquals(5, timeWindow2.getNextNodeNumber());
+        assertEquals(3, (int) timeWindow2.getPath()[0]);
+        assertEquals(8, (int) timeWindow2.getPath()[1]);
+        assertEquals(-1, (int) timeWindow2.getPath()[2]);
+
+
+        //Test for last time window(node 6)
+        double timeToReachNode6 = timeToReachNode9 + (8 + CommonConstant.CROSSING_DISTANCE) / CommonTestConstant.AGV_SPEED;
+        TimeWindow timeWindow3 = path.get(3);
+        assertEquals(5, timeWindow3.getNodeNumber());
+        assertEquals(timeWindow2, timeWindow3.getLastTimeWindow());
+        assertEquals(timeToReachNode6, timeWindow3.getLeastTimeReachHere(), 0.000000001);
+        assertEquals(CommonConstant.INFINITE, timeWindow3.getEndTime(), 0.000000001);
+        assertEquals(0, timeWindow3.getStartTime(), 0.000000001);
+        assertEquals(-1, timeWindow3.getNextNodeNumber());
+        assertEquals(8, (int) timeWindow3.getPath()[0]);
+        assertEquals(5, (int) timeWindow3.getPath()[1]);
+        assertEquals(-1, (int) timeWindow3.getPath()[2]);
+
+        //Test for free time window list
+        Queue<TimeWindow> freeTimeWindowListForNode10 = freeTimeWindowList.get(9);
+        assertEquals(1, freeTimeWindowListForNode10.size());
+        assertEquals(freeTimeWindowListForNode10.poll(),new TimeWindow(9, CommonConstant.AGV_LENGTH / CommonTestConstant.AGV_SPEED,
+                CommonConstant.INFINITE, -1, 0));
+
+        Queue<TimeWindow> freeTimeWindowListForNode4 = freeTimeWindowList.get(3);
+        assertEquals(3, freeTimeWindowListForNode4.size());
+        assertEquals(freeTimeWindowListForNode4.poll(), new TimeWindow(3, 0,
+                timeToReachNode4, -1, 0));
+        assertEquals(freeTimeWindowListForNode4.poll(), new TimeWindow(3,
+                getCrossingTime(timeToReachNode4), 5,  -1, 0));
+        assertEquals(freeTimeWindowListForNode4.poll(), new TimeWindow(3,8,
+                CommonConstant.INFINITE, -1, 0));
+
+        Queue<TimeWindow> freeTimeWindowListForNode9 = freeTimeWindowList.get(8);
+        assertEquals(2, freeTimeWindowListForNode9.size());
+                assertEquals(freeTimeWindowListForNode9.poll(), new TimeWindow(8, 0,
+                timeToReachNode9, -1, 0));
+        assertEquals(freeTimeWindowListForNode9.poll(), new TimeWindow(8, getCrossingTime(timeToReachNode9),
+                CommonConstant.INFINITE, -1, 0));
+
+        Queue<TimeWindow> freeTimeWindowListForNode5 = freeTimeWindowList.get(4);
+        assertEquals(1, freeTimeWindowListForNode5.size());
+        assertEquals(freeTimeWindowListForNode5.poll(), freeTimeWindowForNode5);
+
+        Queue<TimeWindow> freeTimeWindowListForNode6 = freeTimeWindowList.get(5);
+        assertEquals(freeTimeWindowListForNode6.poll(), new TimeWindow(5,
+                0, timeToReachNode6, -1, 0));
+
+        Queue<TimeWindow> freeTimeWindowListForNode3 = freeTimeWindowList.get(2);
+        assertEquals(freeTimeWindowListForNode3.poll(), freeTimeWindow1ForNode3);
+
+        //other free time window should be available all the time
+        assertTrue(freeTimeWindowList.size() == 11);
+        assertEquals(freeTimeWindowList.get(0).poll(), new TimeWindow(0, 0,
+                CommonConstant.INFINITE, -1, 0));
+        assertEquals(freeTimeWindowList.get(1).poll(), new TimeWindow(1, 0,
+                CommonConstant.INFINITE, -1, 0));
+        assertEquals(freeTimeWindowList.get(6).poll(), new TimeWindow(6, 0,
+                CommonConstant.INFINITE, -1, 0));
+        assertEquals(freeTimeWindowList.get(7).poll(), new TimeWindow(7, 0,
+                CommonConstant.INFINITE, -1, 0));
+        assertEquals(freeTimeWindowList.get(10).poll(), new TimeWindow(10, 0,
+                CommonConstant.INFINITE, -1, 0));
+
+
+        //Test for reserved time window list
+        //reserved time window needs to check the next node
+        Queue<TimeWindow> reservedTimeWindowListForNode10 = reservedTimeWindowList.get(9);
+        assertEquals(3, reservedTimeWindowListForNode10.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode10.poll(), new TimeWindow(9, 0,CommonConstant.AGV_LENGTH / CommonTestConstant.AGV_SPEED,
+                0, 4));
+
+        Queue<TimeWindow> reservedTimeWindowListForNode4 = reservedTimeWindowList.get(3);
+        assertEquals(8, reservedTimeWindowListForNode4.peek().getNextNodeNumber());
+        assertEquals(2, reservedTimeWindowListForNode4.size());
+        assertEquals(reservedTimeWindowListForNode4.poll(), new TimeWindow(3,
+                timeToReachNode4, getCrossingTime(timeToReachNode4), 0, 8));
+        assertEquals(2, reservedTimeWindowListForNode4.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode4.poll(), reservedTimeWindowForNode4);
+
+        Queue<TimeWindow> reservedTimeWindowListForNode5 = reservedTimeWindowList.get(4);
+        assertEquals(3, reservedTimeWindowListForNode5.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode5.poll(), reservedTimeWindowForNode5);
+
+        Queue<TimeWindow> reservedTimeWindowListForNode9 = reservedTimeWindowList.get(8);
+        assertEquals(5, reservedTimeWindowListForNode9.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode9.poll(), new TimeWindow(8,
+                timeToReachNode9, getCrossingTime(timeToReachNode9), 0, 5));
+
+        Queue<TimeWindow> reservedTimeWindowListForNode6 = reservedTimeWindowList.get(5);
+        assertEquals(-1, reservedTimeWindowListForNode6.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode6.poll(), new TimeWindow(5,
+                timeToReachNode6, CommonConstant.INFINITE,0, -1));
+
+        Queue<TimeWindow> reservedTimeWindowListForNode3 = reservedTimeWindowList.get(2);
+        assertEquals(-1, reservedTimeWindowListForNode3.peek().getNextNodeNumber());
+        assertEquals(reservedTimeWindowListForNode3.poll(), reservedTimeWindowForNode3);
+
+        //other reserved time window should be empty
+        assertTrue(reservedTimeWindowList.size() == 11);
+        assertTrue(reservedTimeWindowList.get(0).isEmpty());
+        assertTrue(reservedTimeWindowList.get(1).isEmpty());
+        assertTrue(reservedTimeWindowList.get(6).isEmpty());
+        assertTrue(reservedTimeWindowList.get(7).isEmpty());
+        assertTrue(reservedTimeWindowList.get(10).isEmpty());
+    }
+
+    //Given just one AGV, task started from node 10(start from the first buffer(right one)) to node 6 and one AGV blocks the path from node 4 to node 5 (5->4->3)
+    //heck if the path created is 105->4->9->6  and the time calculation is correct.
+    //Check if the reach time for free time window has been set to infinite
+    @Test
+    public void shouldPathCreatedCorrectlyWhenThereIsOneAGVBlockingPath() throws NoPathFeasibleException {
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        int task = 5;
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
+        currentTimeWindow.setFirstStep(true);
+        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
+        TimeWindow reservedTimeWindowForNode5 = new TimeWindow(4, 0, 1, 1, 3);
+        TimeWindow reservedTimeWindowForNode4 = new TimeWindow(3, 5, 8, 1, 2);
+        TimeWindow reservedTimeWindowForNode3 = new TimeWindow(2, 10, CommonConstant.INFINITE, 1, -1);
+        reservedTimeWindowList.get(9).add(reservedTimeWindow);
+        reservedTimeWindowList.get(4).add(reservedTimeWindowForNode5);
+        reservedTimeWindowList.get(3).add(reservedTimeWindowForNode4);
+        reservedTimeWindowList.get(2).add(reservedTimeWindowForNode3);
+        //Initialize all the free time windowsE
+        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5, -1, -1);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE, -1, -1);
+        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10, -1, -1);
+        freeTimeWindowList.get(4).add(freeTimeWindowForNode5);
+        freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
+        freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
+        freeTimeWindowList.get(2).add(freeTimeWindow1ForNode3);
+        for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
+            if (i != 4 && i != 3 && i != 2) {
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                freeTimeWindowList.get(i).add(freeTimeWindow);
+            }
+        }
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        List<Path> path = routing.getPath();
+        assertEquals(3, path.size());
+        Path path0 = path.get(0);
+        Path path1 = path.get(1);
+        Path path2 = path.get(2);
+        assertEquals(105 ,path0.getStartNode());
+        assertEquals(3 ,path0.getEndNode());
+        assertEquals(CommonConstant.BUFFER_PATH_LENGTH / CommonTestConstant.AGV_SPEED, path0.getTime(), 0.0000000001);
+        assertFalse(path0.isLoop());
+        assertEquals(3 ,path1.getStartNode());
+        assertEquals(8 ,path1.getEndNode());
+        assertEquals(10 / CommonTestConstant.AGV_SPEED, path1.getTime(), 0.0000000001);
+        assertFalse(path1.isLoop());
+        assertEquals(8 ,path2.getStartNode());
+        assertEquals(5 ,path2.getEndNode());
+        assertEquals(8 / CommonTestConstant.AGV_SPEED, path2.getTime(), 0.0000000001);
+        assertFalse(path2.isLoop());
+        List<TimeWindow> freeTimeWindows = freeTimeWindowList.stream().flatMap(Queue::stream).collect(Collectors.toList());
+        for (TimeWindow freeTimeWindow : freeTimeWindows) {
+            assertEquals(CommonConstant.INFINITE, freeTimeWindow.getLeastTimeReachHere(), 0.0000000001);
+        }
+    }
+
+    //Check if the return path consists of just one path and free time window least time get here is all infinite when end node locates at current time window (node 6)
+    @Test
+    public void shouldPathCreatedCorrectlyWhenEndNodeLocatesAtCurrentTimeWindow() throws NoPathFeasibleException {
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        int task = 5;
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, 0, -1, 0);
+        currentTimeWindow.setFirstStep(true);
+        TimeWindow reservedTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, 0, -1);
+        reservedTimeWindowList.get(5).add(reservedTimeWindow);
+        //Initialize all the free time windowsE
+        for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
+            TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+            freeTimeWindowList.get(i).add(freeTimeWindow);
+        }
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        List<Path> path = routing.getPath();
+        assertEquals(1, path.size());
+        Path path0 = path.get(0);
+        assertEquals(5 ,path0.getStartNode());
+        assertEquals(5 ,path0.getEndNode());
+        assertEquals(0, path0.getTime(), 0.0000000001);
+        assertFalse(path0.isLoop());
+        List<TimeWindow> freeTimeWindows = freeTimeWindowList.stream().flatMap(Queue::stream).collect(Collectors.toList());
+        for (TimeWindow freeTimeWindow : freeTimeWindows) {
+            assertEquals(CommonConstant.INFINITE, freeTimeWindow.getLeastTimeReachHere(), 0.0000000001);
+        }
+    }
+
+    //Get the time when the AGV cross the crossing
+    private double getCrossingTime(double reachTime) {
+        return (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / CommonTestConstant.AGV_SPEED + reachTime;
     }
 
 

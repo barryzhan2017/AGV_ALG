@@ -65,6 +65,9 @@ public class TimeWindow {
         this.path = path;
     }
 
+    public void setNodeNumberInPath(Integer nodeNumber, int position) {
+        path[position] = nodeNumber;
+    }
     public double getLeastTimeReachHere() {
         return leastTimeReachHere;
     }
