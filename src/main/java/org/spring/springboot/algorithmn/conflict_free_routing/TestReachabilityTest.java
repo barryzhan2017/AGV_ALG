@@ -588,7 +588,7 @@ public class TestReachabilityTest {
 
     //Agv1 loops at node 9，Agv0 goes 2---9---6  Agv2 goes 8---9----4. So AGV cannot loop
     @Test
-    public void shouldLoopReachabilityIsNotAvaliableWhenAllPathsAreBlocked(){
+    public void shouldLoopReachabilityIsNotAvailableWhenAllPathsAreBlocked(){
         List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;

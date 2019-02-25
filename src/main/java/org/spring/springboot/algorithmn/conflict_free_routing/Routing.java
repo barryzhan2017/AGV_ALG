@@ -4,6 +4,7 @@ import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.exception.NoPathFeasibleException;
 
+import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +68,7 @@ public class Routing {
             }
             //Check if it is a loop
             if (endTimeWindow.getPath()[2] != -1) {
-                path = new Path(startNode, endTimeWindow.getPath()[2], time, true);
+                path = new Path(startNode, endTimeWindow.getPath()[1], time, true);
             }
             else {
                 path = new Path(startNode, endNode, time, false);
@@ -87,7 +88,7 @@ public class Routing {
      * Case excludes when the current time window is the destination
      * @return The specific path given the task
      */
-    public List<TimeWindow> getRoute() throws NoPathFeasibleException {
+    List<TimeWindow> getRoute() throws NoPathFeasibleException {
         List<TimeWindow> path = new ArrayList<>();
         //The time window has been included in the path
         List<TimeWindow> occupiedTimeWindows = new ArrayList<>();
@@ -315,16 +316,19 @@ public class Routing {
         //Find all reserve timewindows between 2 free timewindows and find all the lanes these cars will use to get in and out
         ArrayList<Integer> temp = new ArrayList<>();
         Queue<TimeWindow> reservedTimeWindowsInEndNode = reservedTimeWindowList.get(endNode);
-        for(TimeWindow t : reservedTimeWindowsInEndNode){
-            if(t.getStartTime() >= currentTimeWindow.getEndTime() &&
+        for(TimeWindow t : reservedTimeWindowsInEndNode) {
+            if (t.getStartTime() >= currentTimeWindow.getEndTime() &&
                     t.getEndTime() <= endTimeWindow.getStartTime() &&
                     !temp.contains(t.getNextNodeNumber())) {
                 temp.add(t.getNextNodeNumber());
                 //Find the path going to the end time window
-                if(t.getLastTimeWindow() != null) {
-                    int lastTimeWindowStartNode = t.getLastTimeWindow().getNodeNumber();
-                    if(!temp.contains(lastTimeWindowStartNode))
-                        temp.add(lastTimeWindowStartNode);
+                for (int i = 0; i < incidentNodes.size(); i++) {
+                    TimeWindow lastTimeWindow = findLastTimeWindow(incidentNodes.get(i), t.getStartTime(), t.getAGVNumber(), reservedTimeWindowList);
+                    if (lastTimeWindow != null) {
+                        int lastTimeWindowStartNode = lastTimeWindow.getNodeNumber();
+                        if (!temp.contains(lastTimeWindowStartNode))
+                            temp.add(lastTimeWindowStartNode);
+                    }
                 }
             }
         }
@@ -465,6 +469,25 @@ public class Routing {
             }
         }
         return null;
+    }
+
+    /**
+     * Find the Time window immediately before the time window of this ongoing AGV
+     * by checking the specific reserved time window
+     * @param lastNode
+     * @param startTime The time the AGV comes out of the node
+     * @param AGVNumber
+     * @return Next Time Window
+     */
+    TimeWindow findLastTimeWindow(int lastNode, double startTime, int AGVNumber, List<Queue<TimeWindow>> reservedTimeWindowList) {
+        TimeWindow lastTimeWindow = null;
+        for (TimeWindow timeWindows : reservedTimeWindowList.get(lastNode)) {
+            //Last time window the specific AGV comes from
+            if (timeWindows.getStartTime() < startTime && timeWindows.getAGVNumber() == AGVNumber) {
+                lastTimeWindow =  timeWindows;
+            }
+        }
+        return lastTimeWindow;
     }
 
     /**
