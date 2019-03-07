@@ -87,7 +87,7 @@ public class AGV_GA {
         initializeAGVPopulation();
     }
 
-    public List<List<Integer>> singleObjectGenericAlgorithm(List<List<AGVRecord>> bestGenRecords) throws NoAGVInTheBuffer {
+    public List<List<Integer>> singleObjectGenericAlgorithm() throws NoAGVInTheBuffer {
         //Record how many times the generation has been stable.
         int stableTimes = 0;
         //Record how many times it have evolved
@@ -126,7 +126,6 @@ public class AGV_GA {
             List<double[]> localAGVTimes = initialLocalAGVTimes(previousPopulationGen, populationGen);
 
             //初始化每个子代每辆车的记录
-            List<List<List<AGVRecord>>> localAGVRecord = initializeAGVRecords(previousPopulationGen, populationGen);
 //            System.out.println("fitnessSize:"+localAGVFitness.size()+
 //                    "PathSize:"+localAGVPaths.size()+"TimesSize:"+localAGVTimes.size()+"recordSize:"+localAGVRecord.size());
 
@@ -420,19 +419,6 @@ public class AGV_GA {
         return localAGVFitness;
     }
 
-    //初始化AGV的记录
-    private List<List<List<AGVRecord>>> initializeAGVRecords(int startIndex, int endIndex) {
-        List<List<List<AGVRecord>>> localAGVRecord = new ArrayList<List<List<AGVRecord>>>();
-        for (int i = startIndex; i < endIndex; i++) {
-            List<List<AGVRecord>> AGVRecord = new ArrayList<List<AGVRecord>>();
-            for (int j = 0; j < sizeOfAGV; j++) {
-                List<AGVRecord> recordForAGV = new ArrayList<AGVRecord>();
-                AGVRecord.add(recordForAGV);
-            }
-            localAGVRecord.add(AGVRecord);
-        }
-        return localAGVRecord;
-    }
 
     //根据经验方程适当的改变交叉和变异的概率,这里头的适应度应该是越小越好的
     //根据经验结果，控制crossover在0.3到0.9之间，mutate在0.1到0.4之间
