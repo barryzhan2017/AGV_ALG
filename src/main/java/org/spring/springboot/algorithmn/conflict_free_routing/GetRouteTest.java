@@ -1,6 +1,6 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
 
-import org.elasticsearch.common.recycler.Recycler;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.spring.springboot.algorithmn.common.CommonConstant;
@@ -9,10 +9,8 @@ import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.exception.NoPathFeasibleException;
 
 import java.io.IOException;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
@@ -40,7 +38,7 @@ public class GetRouteTest {
         TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 1, -1, 0);
         currentTimeWindow.setFirstStep(true);
         reservedTimeWindowList.get(9).add(currentTimeWindow);
-        TimeWindow endTimeWindow = new TimeWindow(0, 0, CommonConstant.INFINITE, -1, -1);
+        TimeWindow endTimeWindow = new TimeWindow(0, 0, CommonConstant.INFINITE);
         freeTimeWindowList.get(0).add(endTimeWindow);
         freeTimeWindowList.get(9).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
@@ -67,7 +65,7 @@ public class GetRouteTest {
         TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
         currentTimeWindow.setFirstStep(true);
         reservedTimeWindowList.get(9).add(currentTimeWindow);
-        TimeWindow endTimeWindow = new TimeWindow(3, 0, CommonConstant.INFINITE, -1, -1);
+        TimeWindow endTimeWindow = new TimeWindow(3, 0, CommonConstant.INFINITE);
         freeTimeWindowList.get(3).add(endTimeWindow);
         freeTimeWindowList.get(9).add(currentTimeWindow);
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
@@ -265,17 +263,17 @@ public class GetRouteTest {
         reservedTimeWindowList.get(3).add(reservedTimeWindowForNode4);
         reservedTimeWindowList.get(2).add(reservedTimeWindowForNode3);
         //Initialize all the free time windowsE
-        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5, -1, -1);
-        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10, -1, -1);
+        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10);
         freeTimeWindowList.get(4).add(freeTimeWindowForNode5);
         freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
         freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
         freeTimeWindowList.get(2).add(freeTimeWindow1ForNode3);
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
             if (i != 4 && i != 3 && i != 2) {
-                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE);
                 freeTimeWindowList.get(i).add(freeTimeWindow);
             }
         }
@@ -435,7 +433,7 @@ public class GetRouteTest {
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         int task = 7;
         //AGV 0
-        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
+        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, 0, 0);
         currentTimeWindow.setFirstStep(true);
         TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
         TimeWindow reservedTimeWindowForNode2 = new TimeWindow(1, 0, 1, 1, 8);
@@ -455,14 +453,14 @@ public class GetRouteTest {
         reservedTimeWindowList.get(3).add(reservedTimeWindow2ForNode4);
 
         //Initialize all the free time windows
-        TimeWindow freeTimeWindow1ForNode2 = new TimeWindow(1, 1, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 4, -1, -1);
-        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 4, 18, -1, -1);
-        TimeWindow freeTimeWindow1ForNode9 = new TimeWindow(8, 0, 11, -1, -1);
-        TimeWindow freeTimeWindow2ForNode9 = new TimeWindow(8, 15, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode8 = new TimeWindow(7, 0, 14, -1, -1);
-        TimeWindow freeTimeWindow2ForNode8 = new TimeWindow(7, 18, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode1 = new TimeWindow(0, 0, 20, -1, -1);
+        TimeWindow freeTimeWindow1ForNode2 = new TimeWindow(1, 1, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 4);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 4, 18);
+        TimeWindow freeTimeWindow1ForNode9 = new TimeWindow(8, 0, 11);
+        TimeWindow freeTimeWindow2ForNode9 = new TimeWindow(8, 15, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode8 = new TimeWindow(7, 0, 14);
+        TimeWindow freeTimeWindow2ForNode8 = new TimeWindow(7, 18, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode1 = new TimeWindow(0, 0, 20);
         freeTimeWindowList.get(1).add(freeTimeWindow1ForNode2);
         freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
         freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
@@ -473,7 +471,7 @@ public class GetRouteTest {
         freeTimeWindowList.get(0).add(freeTimeWindow1ForNode1);
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
             if (i != 1 && i != 8 && i != 7 && i != 0 && i != 3) {
-                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE);
                 freeTimeWindowList.get(i).add(freeTimeWindow);
             }
         }
@@ -660,35 +658,31 @@ public class GetRouteTest {
         List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
-        int task = 5;
-        //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
-        currentTimeWindow.setFirstStep(true);
-        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
+
         TimeWindow reservedTimeWindowForNode5 = new TimeWindow(4, 0, 1, 1, 3);
         TimeWindow reservedTimeWindowForNode4 = new TimeWindow(3, 5, 8, 1, 2);
         TimeWindow reservedTimeWindowForNode3 = new TimeWindow(2, 10, CommonConstant.INFINITE, 1, -1);
-        reservedTimeWindowList.get(9).add(reservedTimeWindow);
         reservedTimeWindowList.get(4).add(reservedTimeWindowForNode5);
         reservedTimeWindowList.get(3).add(reservedTimeWindowForNode4);
         reservedTimeWindowList.get(2).add(reservedTimeWindowForNode3);
         //Initialize all the free time windowsE
-        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5, -1, -1);
-        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10, -1, -1);
+        TimeWindow freeTimeWindowForNode5 = new TimeWindow(4, 1, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 5);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 8, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode3 = new TimeWindow(2, 0, 10);
         freeTimeWindowList.get(4).add(freeTimeWindowForNode5);
         freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
         freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
         freeTimeWindowList.get(2).add(freeTimeWindow1ForNode3);
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
             if (i != 4 && i != 3 && i != 2) {
-                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE);
                 freeTimeWindowList.get(i).add(freeTimeWindow);
             }
         }
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
-        List<Path> path = routing.getPath();
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, graph, bufferSet, CommonTestConstant.AGV_SPEED);
+
+        List<Path> path = routing.getPath(9, 0, 0, 5);
         assertEquals(3, path.size());
         Path path0 = path.get(0);
         Path path1 = path.get(1);
@@ -718,18 +712,13 @@ public class GetRouteTest {
         List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         int task = 5;
-        //AGV 1
-        TimeWindow currentTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, 0, -1, 0);
-        currentTimeWindow.setFirstStep(true);
-        TimeWindow reservedTimeWindow = new TimeWindow(5, 0, CommonConstant.INFINITE, 0, -1);
-        reservedTimeWindowList.get(5).add(reservedTimeWindow);
         //Initialize all the free time windowsE
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
             TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
             freeTimeWindowList.get(i).add(freeTimeWindow);
         }
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
-        List<Path> path = routing.getPath();
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, graph, bufferSet, CommonTestConstant.AGV_SPEED);
+        List<Path> path = routing.getPath(5, 0, 0, task);
         assertEquals(1, path.size());
         Path path0 = path.get(0);
         assertEquals(5 ,path0.getStartNode());
@@ -755,7 +744,6 @@ public class GetRouteTest {
         //AGV 0
         TimeWindow currentTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1, 0);
         currentTimeWindow.setFirstStep(true);
-        TimeWindow reservedTimeWindow = new TimeWindow(9, 0, CommonConstant.INFINITE, 0, -1);
         TimeWindow reservedTimeWindowForNode2 = new TimeWindow(1, 0, 1, 1, 8);
         TimeWindow reservedTimeWindow1ForNode9 = new TimeWindow(8, 11, 12, 1, 7);
         TimeWindow reservedTimeWindowForNode8 = new TimeWindow(7, 14, 18, 1, 0);
@@ -763,7 +751,6 @@ public class GetRouteTest {
         TimeWindow reservedTimeWindow2ForNode4 = new TimeWindow(3, 18, CommonConstant.INFINITE, 2, -1);
         TimeWindow reservedTimeWindow1ForNode4 = new TimeWindow(3, 4, 5, 2, 8);
         TimeWindow reservedTimeWindowForNode1 = new TimeWindow(0, 20, CommonConstant.INFINITE, 1, -1);
-        reservedTimeWindowList.get(9).add(reservedTimeWindow);
         reservedTimeWindowList.get(1).add(reservedTimeWindowForNode2);
         reservedTimeWindowList.get(8).add(reservedTimeWindow1ForNode9);
         reservedTimeWindowList.get(8).add(reservedTimeWindow2ForNode9);
@@ -773,14 +760,14 @@ public class GetRouteTest {
         reservedTimeWindowList.get(3).add(reservedTimeWindow2ForNode4);
 
         //Initialize all the free time windows
-        TimeWindow freeTimeWindow1ForNode2 = new TimeWindow(1, 1, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 4, -1, -1);
-        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 4, 18, -1, -1);
-        TimeWindow freeTimeWindow1ForNode9 = new TimeWindow(8, 0, 11, -1, -1);
-        TimeWindow freeTimeWindow2ForNode9 = new TimeWindow(8, 15, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode8 = new TimeWindow(7, 0, 14, -1, -1);
-        TimeWindow freeTimeWindow2ForNode8 = new TimeWindow(7, 18, CommonConstant.INFINITE, -1, -1);
-        TimeWindow freeTimeWindow1ForNode1 = new TimeWindow(0, 0, 20, -1, -1);
+        TimeWindow freeTimeWindow1ForNode2 = new TimeWindow(1, 1, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode4 = new TimeWindow(3, 0, 4);
+        TimeWindow freeTimeWindow2ForNode4 = new TimeWindow(3, 4, 18);
+        TimeWindow freeTimeWindow1ForNode9 = new TimeWindow(8, 0, 11);
+        TimeWindow freeTimeWindow2ForNode9 = new TimeWindow(8, 15, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode8 = new TimeWindow(7, 0, 14);
+        TimeWindow freeTimeWindow2ForNode8 = new TimeWindow(7, 18, CommonConstant.INFINITE);
+        TimeWindow freeTimeWindow1ForNode1 = new TimeWindow(0, 0, 20);
         freeTimeWindowList.get(1).add(freeTimeWindow1ForNode2);
         freeTimeWindowList.get(3).add(freeTimeWindow1ForNode4);
         freeTimeWindowList.get(3).add(freeTimeWindow2ForNode4);
@@ -791,12 +778,12 @@ public class GetRouteTest {
         freeTimeWindowList.get(0).add(freeTimeWindow1ForNode1);
         for (int i = 0; i < CommonTestConstant.SPECIAL_GRAPH_SIZE; i++) {
             if (i != 1 && i != 8 && i != 7 && i != 0 && i != 3) {
-                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE, -1, -1);
+                TimeWindow freeTimeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE);
                 freeTimeWindowList.get(i).add(freeTimeWindow);
             }
         }
-        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, task, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
-        List<Path> path = routing.getPath();
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, graph, bufferSet, CommonTestConstant.AGV_SPEED);
+        List<Path> path = routing.getPath(9, 0, 0, task);
         assertEquals(4, path.size());
         Path path0 = path.get(0);
         assertEquals(105, path0.getStartNode());

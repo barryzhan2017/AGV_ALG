@@ -7,7 +7,7 @@ public class TimeWindow {
     private int nodeNumber;
     private double startTime;
     private double endTime;
-    private int AGVNumber;
+    private int AGVNumber = -1;
     //The node the AGV goes to next
     private int nextNodeNumber = -1;
     //The time window linked to it as a previous one
@@ -19,12 +19,27 @@ public class TimeWindow {
     //If it is first step, the time to start routing should be subtract the crossing time
     private boolean isFirstStep = false;
 
+    public TimeWindow(int nodeNumber, double startTime, double endTime) {
+        this.nodeNumber = nodeNumber;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
     public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
         this.AGVNumber = AGVNumber;
         this.nextNodeNumber = nextNodeNumber;
+    }
+
+    //Used for initialize current time window
+    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, double leastTimeReachHere) {
+        this.nodeNumber = nodeNumber;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.AGVNumber = AGVNumber;
+        this.leastTimeReachHere = leastTimeReachHere;
     }
 
     public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber, double leastTimeReachHere) {

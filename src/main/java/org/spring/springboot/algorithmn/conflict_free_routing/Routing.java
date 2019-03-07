@@ -1,10 +1,7 @@
 package org.spring.springboot.algorithmn.conflict_free_routing;
-
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.exception.NoPathFeasibleException;
-
-import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +24,7 @@ public class Routing {
     private HashMap<Integer, Integer> graphNodeToBuffer = new HashMap<>();
     private double speed;
 
-    public Routing() {
+    Routing() {
 
     }
 
@@ -40,17 +37,81 @@ public class Routing {
         this.speed = speed;
     }
 
+    //Used for test situation with some initial time window
+    Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, double[][] graph, List<List<Integer>> bufferSet, double speed) {
+        this.freeTimeWindowList = freeTimeWindowList;
+        this.reservedTimeWindowList = reservedTimeWindowList;
+        this.graph = initializeGraphWithBufferEndNode(graph, bufferSet);
+        this.speed = speed;
+    }
+    //Used for realistic situation without initial time window
+    public Routing(double[][] graph, List<List<Integer>> bufferSet, double speed, int initialCapacity) {
+        this.graph = initializeGraphWithBufferEndNode(graph, bufferSet);
+        int graphNodeNumber = this.graph.length;
+        this.freeTimeWindowList = initTimeWindowList(graphNodeNumber, initialCapacity);
+        this.reservedTimeWindowList = initTimeWindowList(graphNodeNumber, initialCapacity);
+        //Create free time window for all nodes
+        initializeFreeTimeWindowList(graphNodeNumber);
+        this.speed = speed;
+    }
+
+    private void initializeFreeTimeWindowList(int graphNodeNumber) {
+        for (int i = 0; i < graphNodeNumber; i++) {
+            Queue<TimeWindow> freeTimeWindows = freeTimeWindowList.get(i);
+            TimeWindow timeWindow = new TimeWindow(i, 0, CommonConstant.INFINITE);
+            freeTimeWindows.add(timeWindow);
+        }
+    }
+
+    private void setCurrentTimeWindow(int nodeNumber, double leastTimeReachHere, int AGVNumber) {
+        TimeWindow currentTimeWindow = new TimeWindow(nodeNumber, 0, CommonConstant.INFINITE, AGVNumber, leastTimeReachHere);
+        currentTimeWindow.setFirstStep(true);
+        this.currentTimeWindow = currentTimeWindow;
+    }
+
+    private void setEndNode(int endNode) {
+        this.endNode = endNode;
+    }
+
+    //Initialize the time window list for the graph
+    private static List<Queue<TimeWindow>> initTimeWindowList(int graphNodeNumber, int initialCapacity) {
+        List<Queue<TimeWindow>> timeWindowList = new ArrayList<>(graphNodeNumber);
+        for (int i = 0; i < graphNodeNumber; i++) {
+            PriorityQueue<TimeWindow> timeWindowQueue =
+                    new PriorityQueue<>(initialCapacity, new TimeWindowComparator());
+            timeWindowList.add(timeWindowQueue);
+        }
+        return timeWindowList;
+    }
+
     /**
-     * Get the Path for the AGV's routing and clean up the free time window
+     *
+     * @param nodeNumber Node number of the current position
+     * @param leastTimeReachHere Least time to reach the node
+     * @param indexOfAGV Index of AGV
+     * @param terminalNode Node number the AGV wants to go
      * @return Path the AGV goes to the end node from the current time window
+     * @throws NoPathFeasibleException No feasible path to be found.
      */
-    public List<Path> getPath() throws NoPathFeasibleException {
+    public List<Path> getPath(int nodeNumber, double leastTimeReachHere, int indexOfAGV, int terminalNode) throws NoPathFeasibleException {
+        //To prevent searching buffer node, first transfer the buffer node number into graph node number
+        int graphNodeNumber;
+        if ((graphNodeNumber = findGraphNumberFromBufferNumber(nodeNumber)) != -1) {
+            nodeNumber = graphNodeNumber;
+        }
+        setEndNode(terminalNode);
+        setCurrentTimeWindow(nodeNumber, leastTimeReachHere, indexOfAGV);
         List<Path> paths = new ArrayList<>();
         if (currentTimeWindow.getNodeNumber() == endNode) {
             Path path1 = new Path(endNode, endNode, 0, false);
             paths.add(path1);
             return paths;
         }
+        TimeWindow reservedTimeWindow = new TimeWindow(nodeNumber, 0, CommonConstant.INFINITE, indexOfAGV, -1);
+        //To avoid to search the current node as a possible next time window
+        Queue<TimeWindow> reservedTimeWindows = reservedTimeWindowList.get(nodeNumber);
+        reservedTimeWindows.remove(reservedTimeWindow);
+        reservedTimeWindows.add(reservedTimeWindow);
         List<TimeWindow> timeWindowList = getRoute();
         //At least there will be 2 time windows
         for (int i = 0; i < timeWindowList.size() - 1; i++) {
@@ -179,7 +240,7 @@ public class Routing {
                 freeTimeWindowsForThisNode.add(newFreeTimeWindow);
             }
         }
-        //Covert the buffer node number to the original one
+        //Convert the buffer node number to the original one
         for (TimeWindow newPath : path) {
             if (graphNodeToBuffer.containsKey(newPath.getNodeNumber())) {
                 newPath.setNodeNumber(graphNodeToBuffer.get(newPath.getNodeNumber()));
@@ -305,8 +366,9 @@ public class Routing {
         path[2] = -1;
         ArrayList<Integer> incidentNodes = new ArrayList<>();// All lanes(node number) incident to node i
         for(int i = 0; i < length && i != endNode; i++){
-            if (graph[endNode][i] != CommonConstant.MAX_EDGE)
+            if (graph[endNode][i] != CommonConstant.MAX_EDGE && graph[i][endNode] != CommonConstant.MAX_EDGE) {
                 incidentNodes.add(i);
+            }
         }
 
         //if incidentNodes is empty, then return(no lanes icident to node i)
@@ -332,8 +394,6 @@ public class Routing {
                 }
             }
         }
-
-
 
         //Find if there are lanes available for the loop
         for(Integer t : temp){
@@ -564,4 +624,50 @@ public class Routing {
     }
 
 
+    /**
+     * Remove the reserved time window in the buffer's first position.
+     * @param bufferNodeNumber buffer node number
+     */
+    public void releaseBufferFirstPosition(Integer bufferNodeNumber) {
+        //Find the graph number in the routing
+        int graphNumber = findGraphNumberFromBufferNumber(bufferNodeNumber);
+        if (graphNumber == -1) {
+            throw new IllegalArgumentException("Buffer number does not have corresponding node number!");
+        }
+        reservedTimeWindowList.get(graphNumber).remove();
+        TimeWindow freeTimeWindow =  new TimeWindow(graphNumber, 0, CommonConstant.INFINITE, -1, -1);
+        freeTimeWindowList.get(graphNumber).add(freeTimeWindow);
+    }
+
+    /**
+     * Find the node number for the node in the special graph given the node number in the buffer.
+     * @param bufferNodeNumber buffer node nuumber
+     * @return graph node number
+     */
+    private int findGraphNumberFromBufferNumber(Integer bufferNodeNumber) {
+        int graphNumber = -1;
+        for (Integer graphNodeNumber : graphNodeToBuffer.keySet()) {
+            if (graphNodeToBuffer.get(graphNodeNumber).equals(bufferNodeNumber)) {
+                graphNumber = graphNodeNumber;
+                break;
+            }
+        }
+        return graphNumber;
+    }
+
+    /**
+     * Change the reserved time window for the node in the buffer.
+     * @param secondToLastPositionInBuffer buffer node number
+     * @param AGVNumber
+     */
+    public void createReservedTimeWindowForEndPosition(int secondToLastPositionInBuffer, int AGVNumber) {
+        //Find the graph number in the routing
+        int graphNumber = findGraphNumberFromBufferNumber(secondToLastPositionInBuffer);
+        if (graphNumber == -1) {
+            throw new IllegalArgumentException("Buffer number does not have corresponding node number!");
+        }
+        reservedTimeWindowList.get(graphNumber).remove();
+        TimeWindow reservedTimeWindow =  new TimeWindow(graphNumber, 0, CommonConstant.INFINITE, AGVNumber, -1);
+        reservedTimeWindowList.get(graphNumber).add(reservedTimeWindow);
+    }
 }

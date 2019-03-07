@@ -1,12 +1,12 @@
 package org.spring.springboot.algorithmn.common;
 
 public class Path {
-    public int startNode;
-    public int endNode;
+    private int startNode;
+    private int endNode;
     //Time required to go through the path, starting when the AGV totally entered the path, ending when the AGV totally get into the crossing
-    public double time;
+    private double time;
     //To check if the path is a loop (loop means the AGV starts from start node and goes into this path and goes back to the start node)
-    public boolean isLoop;
+    private boolean isLoop;
 
     public int getStartNode() {
         return startNode;
