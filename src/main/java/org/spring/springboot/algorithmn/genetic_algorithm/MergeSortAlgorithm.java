@@ -17,7 +17,7 @@ public class MergeSortAlgorithm {
         if (length == -1) {
             throw new NoAGVInTheBuffer("No AGV is returning to the buffer!");
         }
-        int[] temp = new int [length];
+        int[] temp = new int [length + 1];
         mergesort(a, temp, 0, length, time);
     }
     /**

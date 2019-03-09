@@ -23,6 +23,7 @@ public class Routing {
     //Use map to store the mapped buffer node value
     private HashMap<Integer, Integer> graphNodeToBuffer = new HashMap<>();
     private double speed;
+    private int initialCapacity;
 
     Routing() {
 
@@ -38,7 +39,7 @@ public class Routing {
     }
 
     //Used for test situation with some initial time window
-    Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, double[][] graph, List<List<Integer>> bufferSet, double speed) {
+    public Routing(List<Queue<TimeWindow>> freeTimeWindowList, List<Queue<TimeWindow>> reservedTimeWindowList, double[][] graph, List<List<Integer>> bufferSet, double speed) {
         this.freeTimeWindowList = freeTimeWindowList;
         this.reservedTimeWindowList = reservedTimeWindowList;
         this.graph = initializeGraphWithBufferEndNode(graph, bufferSet);
@@ -48,6 +49,7 @@ public class Routing {
     public Routing(double[][] graph, List<List<Integer>> bufferSet, double speed, int initialCapacity) {
         this.graph = initializeGraphWithBufferEndNode(graph, bufferSet);
         int graphNodeNumber = this.graph.length;
+        this.initialCapacity = initialCapacity;
         this.freeTimeWindowList = initTimeWindowList(graphNodeNumber, initialCapacity);
         this.reservedTimeWindowList = initTimeWindowList(graphNodeNumber, initialCapacity);
         //Create free time window for all nodes
@@ -73,11 +75,15 @@ public class Routing {
         this.endNode = endNode;
     }
 
+    public void setInitialCapacity(int initialCapacity) {
+        this.initialCapacity = initialCapacity;
+    }
+
     //Initialize the time window list for the graph
     private static List<Queue<TimeWindow>> initTimeWindowList(int graphNodeNumber, int initialCapacity) {
         List<Queue<TimeWindow>> timeWindowList = new ArrayList<>(graphNodeNumber);
         for (int i = 0; i < graphNodeNumber; i++) {
-            PriorityQueue<TimeWindow> timeWindowQueue =
+            Queue<TimeWindow> timeWindowQueue =
                     new PriorityQueue<>(initialCapacity, new TimeWindowComparator());
             timeWindowList.add(timeWindowQueue);
         }
@@ -623,22 +629,6 @@ public class Routing {
         return -1;
     }
 
-
-    /**
-     * Remove the reserved time window in the buffer's first position.
-     * @param bufferNodeNumber buffer node number
-     */
-    public void releaseBufferFirstPosition(Integer bufferNodeNumber) {
-        //Find the graph number in the routing
-        int graphNumber = findGraphNumberFromBufferNumber(bufferNodeNumber);
-        if (graphNumber == -1) {
-            throw new IllegalArgumentException("Buffer number does not have corresponding node number!");
-        }
-        reservedTimeWindowList.get(graphNumber).remove();
-        TimeWindow freeTimeWindow =  new TimeWindow(graphNumber, 0, CommonConstant.INFINITE, -1, -1);
-        freeTimeWindowList.get(graphNumber).add(freeTimeWindow);
-    }
-
     /**
      * Find the node number for the node in the special graph given the node number in the buffer.
      * @param bufferNodeNumber buffer node nuumber
@@ -658,16 +648,35 @@ public class Routing {
     /**
      * Change the reserved time window for the node in the buffer.
      * @param secondToLastPositionInBuffer buffer node number
-     * @param AGVNumber
+     * @param indexOfAGV index of AGV
+     * @param time Time when the AGV arrives at the end edge of the last node
      */
-    public void createReservedTimeWindowForEndPosition(int secondToLastPositionInBuffer, int AGVNumber) {
+    public void createReservedTimeWindowForEndPosition(int secondToLastPositionInBuffer, int indexOfAGV, double time) {
         //Find the graph number in the routing
         int graphNumber = findGraphNumberFromBufferNumber(secondToLastPositionInBuffer);
         if (graphNumber == -1) {
             throw new IllegalArgumentException("Buffer number does not have corresponding node number!");
         }
-        reservedTimeWindowList.get(graphNumber).remove();
-        TimeWindow reservedTimeWindow =  new TimeWindow(graphNumber, 0, CommonConstant.INFINITE, AGVNumber, -1);
-        reservedTimeWindowList.get(graphNumber).add(reservedTimeWindow);
+        //Change the last time window to a new time window
+        Queue<TimeWindow> timeWindowQueue = reservedTimeWindowList.get(graphNumber);
+        Queue<TimeWindow> newTimeWindowQueue = new PriorityQueue<>(initialCapacity, new TimeWindowComparator());
+        TimeWindow removedTimeWindow;
+        while(true) {
+            removedTimeWindow = timeWindowQueue.poll();
+            if (timeWindowQueue.isEmpty()) {
+                break;
+            }
+            newTimeWindowQueue.add(removedTimeWindow);
+        }
+        double startTime = removedTimeWindow.getStartTime();
+        removedTimeWindow.setEndTime(startTime + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / speed);
+        newTimeWindowQueue.add(removedTimeWindow);
+        //Add the new reserved time window from the newly coming AGV
+        TimeWindow newReservedTimeWindow =  new TimeWindow(graphNumber, time - CommonConstant.CROSSING_DISTANCE / speed, CommonConstant.INFINITE, indexOfAGV, time - CommonConstant.CROSSING_DISTANCE / speed);
+        newTimeWindowQueue.add(newReservedTimeWindow);
+        reservedTimeWindowList.remove(graphNumber);
+        reservedTimeWindowList.add(graphNumber, newTimeWindowQueue);
     }
+
+
 }

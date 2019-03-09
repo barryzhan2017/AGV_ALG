@@ -200,10 +200,7 @@ public class AGV_GA {
             logger.info("Path is {}", localAGVPaths);
             //更新人口
             logger.info("Generation after computing is {}", populationGen);
-
             //计算fitness，对出现碰撞的规划增加penalty，碰撞越多penalty越大
-//            conflictAvoid.conflictAvoid(localAGVPaths, localAGVFitness);
-
             //将子代和父代和在一块
             AGVFitness.addAll(localAGVFitness);
             AGVTimes.addAll(localAGVTimes);

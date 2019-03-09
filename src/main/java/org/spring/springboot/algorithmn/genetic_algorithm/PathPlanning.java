@@ -63,10 +63,19 @@ public class PathPlanning {
         return paths;
     }
 
+    /**
+     * Calculate the total time during the path
+     * @param paths Path of the AGV
+     * @param speed Speed of AGV
+     * @return Time to go through the path
+     */
     private double getTimeFromPath(List<Path> paths, double speed) {
         double time = 0;
+        //To deal with one path to the current position, ignore the crossing time.
         for (Path path : paths) {
-            time += path.getTime() + CommonConstant.CROSSING_DISTANCE / speed;
+            if (path.getTime() != 0) {
+                time += path.getTime() + CommonConstant.CROSSING_DISTANCE / speed;
+            }
         }
         return time;
     }
@@ -80,7 +89,7 @@ public class PathPlanning {
      */
     void adjustOtherAGVPositions(List<Integer> buffer, List<List<Path>> generationForAGVPaths, double fitness[], Routing routing) {
         for (List<Path> path :generationForAGVPaths) {
-            Path endPath = path.get(path.size()-1);
+            Path endPath = path.get(path.size() - 1);
             int endPosition = endPath.getEndNode();
             //If the AGV stops in the buffer area, move it forwards
             if (buffer.contains(endPosition) && endPosition != buffer.get(0)
@@ -89,16 +98,14 @@ public class PathPlanning {
                 Path nextPath = new Path(endPosition, nextNode, distanceOfBuffer / speedOfAGV, false);
                 path.add(nextPath);
                 int indexOfAGV = generationForAGVPaths.indexOf(path);
+//                double time = getTimeFromPath(path, speedOfAGV);
                 fitness[indexOfAGV] += (distanceOfBuffer + CommonConstant.CROSSING_DISTANCE) / speedOfAGV;
-                //Release the first node in buffer
-                int secondPositionInBuffer = buffer.get(1);
-                if (endPosition == secondPositionInBuffer) {
-                    routing.releaseBufferFirstPosition(secondPositionInBuffer);
-                }
-                int secondToLastPositionInBuffer = buffer.get(buffer.size() - 2);
-                if (nextNode == secondToLastPositionInBuffer) {
-                    routing.createReservedTimeWindowForEndPosition(secondToLastPositionInBuffer, indexOfAGV);
-                }
+                //Release the second to last node in buffer
+//                int secondToLastPositionInBuffer = buffer.get(buffer.size() - 2);
+                //Don't change the time window because it will not affect the algorithm
+//                if (nextNode == secondToLastPositionInBuffer) {
+//                    routing.createReservedTimeWindowForEndPosition(secondToLastPositionInBuffer, indexOfAGV, time);
+//                }
             }
         }
     }
@@ -109,7 +116,6 @@ public class PathPlanning {
      * @param generationForAGVPaths All of the paths of AGVs in one generation
      * @param bufferSet All of the paths information for all the buffers
      * @param bufferForAGVs The mapping from AGV index to buffer index
-     * @param fitness Fitness of all the AGVs
      * @param time Current time for all the AGVs
      * @throws NoAGVInTheBuffer Find no AGV is returning to specific buffer
      */
@@ -140,7 +146,14 @@ public class PathPlanning {
         for (int i = 0; i < numberOfBuffers; i++) {
             List<Integer> buffer = bufferSet.get(i);
             int sizeOfBuffer = buffer.size();
+            //Calculate the number of AGVs occupying the buffer
             int occupiedSpaceInBuffer = 0;
+            for (int j = 0; j < numberOfAGVs; j++){
+                //These are AGV staying idle in the buffer.
+                if (bufferForAGVs[j] == i && !isReturning(j)) {
+                    occupiedSpaceInBuffer++;
+                }
+            }
             for (int j = 0; j < numberOfAGVs; j++) {
                 int indexOfAGV = indexOfAGVsForBuffer[i][j];
                 if (indexOfAGV != -1) {
@@ -175,7 +188,7 @@ public class PathPlanning {
         for (int i = 1; i <= indexOfBuffer; i++) {
             int bufferNode = buffer.get(i);
             int startNode = lastPath.getEndNode();
-            Path path = new Path(startNode, bufferNode, distanceOfBuffer, false);
+            Path path = new Path(startNode, bufferNode, distanceOfBuffer/ speedOfAGV, false);
             earliestAGVPath.add(path);
             lastPath = path;
         }

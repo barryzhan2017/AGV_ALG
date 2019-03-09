@@ -38,6 +38,19 @@ public class CommonTestConstant {
         return  bufferPath;
     }
 
+    public static List<List<Integer>> getOneBufferForTestGraph2() {
+        List<List<Integer>> bufferPath = new ArrayList<List<Integer>>();
+        List<Integer> bufferPath1 = new ArrayList<Integer>();
+        bufferPath1.add(2);
+        bufferPath1.add(101);
+        bufferPath1.add(102);
+        bufferPath1.add(103);
+        bufferPath1.add(104);
+        bufferPath1.add(105);
+        bufferPath1.add(3);
+        bufferPath.add(bufferPath1);
+        return  bufferPath;
+    }
 
     //Initialize the time window list for the graph
     public static List<Queue<TimeWindow>> initTimeWindowList(int graphNodeNumber) {
@@ -54,5 +67,9 @@ public class CommonTestConstant {
         //从csv文件中读取矩阵
         File file = new File("TestGraphSet/TestGraph2.csv");
         return (Matrix.Factory.importFrom().file(file).asDenseCSV()).toDoubleArray();
+    }
+
+    public static double timeForCrossingBuffers(int numberOfBufferToCross) {
+        return numberOfBufferToCross * (CommonConstant.BUFFER_PATH_LENGTH + CommonConstant.CROSSING_DISTANCE) / AGV_SPEED;
     }
 }

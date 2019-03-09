@@ -34,7 +34,7 @@ public class TimeWindow {
     }
 
     //Used for initialize current time window
-    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, double leastTimeReachHere) {
+    TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, double leastTimeReachHere) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -42,7 +42,7 @@ public class TimeWindow {
         this.leastTimeReachHere = leastTimeReachHere;
     }
 
-    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber, double leastTimeReachHere) {
+    TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber, double leastTimeReachHere) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;

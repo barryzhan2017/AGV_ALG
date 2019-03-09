@@ -1,5 +1,7 @@
 package org.spring.springboot.algorithmn.common;
 
+import java.util.Objects;
+
 public class Path {
     private int startNode;
     private int endNode;
@@ -45,5 +47,22 @@ public class Path {
         this.endNode = endNode;
         this.time = time;
         this.isLoop = isLoop;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Path path = (Path) o;
+        return startNode == path.startNode &&
+                endNode == path.endNode &&
+                Double.compare(path.time, time) == 0 &&
+                isLoop == path.isLoop;
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(startNode, endNode, time, isLoop);
     }
 }
