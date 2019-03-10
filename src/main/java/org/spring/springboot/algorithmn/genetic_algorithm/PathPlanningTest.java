@@ -6,17 +6,16 @@ import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.CommonTestConstant;
 import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.conflict_free_routing.Routing;
-import org.spring.springboot.algorithmn.conflict_free_routing.TimeWindow;
 import org.spring.springboot.algorithmn.exception.NoAGVInTheBuffer;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
+
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+
 
 public class PathPlanningTest {
 
@@ -136,7 +135,6 @@ public class PathPlanningTest {
         double[] fitness = {0, 0, 0};
         PathPlanning pathPlanning = new PathPlanning(3, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH);
         pathPlanning.adjustOtherAGVPositions(bufferSet.get(0), generationForAGVPath, fitness, routing);
-        
         assertEquals(2, pathForAGV0.size());
         Path path0ForAGV0 = pathForAGV0.get(0);
         assertEquals(currentPathForAGV0, path0ForAGV0);

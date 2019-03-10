@@ -12,8 +12,8 @@ import java.util.*;
 //前端传的ongoingAGVPaths不要有个-1位
 //前端传的timeAlreadyPassing用-1表示空闲
 public class AGV_GA {
-    public final Logger logger = LoggerFactory.getLogger(getClass());
-    private Matrix graph;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private double[][] graph;
     private int populationGen;
     // Priority of tasks have maintain in the array. First element for first priority.
     private Integer[][] tasks; // Each start and end for each task
@@ -49,17 +49,10 @@ public class AGV_GA {
     private double[] mutateProbabilityArray;
     private double currentMeanFitness = 0;
     private double previousMeanFitness = 0;
-    private double currentMeanDistance = 0;
-    private double previousMeanDistance = 0;
-    private final int MAX_EDGE = 999999;
     private final int INITIAL_POPULATION = 100;
     private final int MIN_GENERATION = 50;
     private final int MAX_GENERATION = (int)(MIN_GENERATION*1.5);
     private final double PENALTY_FOR_CONFLICT = 99999;
-//    private final double SAFE_DISTANCE = minDistance*0.7;//1m为小车间的安全距离
-// 注意安全距离要小于两个车子的最小时间行驶距离之和保证相向碰撞计算可靠
-// 且保证小于最小距离*根号2，这样朝点的碰撞也不会重复计算，（两个车必须都在最小距离之内才计算）
-
     private final double RELATIVE_ERROR = 0.001;//收敛的相对误差，小于这个则表示稳定
     private final int INITIAL_CAPACITY = 30;
 
@@ -67,7 +60,7 @@ public class AGV_GA {
 
     }
 
-    public AGV_GA(Matrix graph, Integer[][] tasks, Double[] timeAlreadyPassing, List<List<Path>> ongoingAGVPaths,
+    public AGV_GA(double[][] graph, Integer[][] tasks, Double[] timeAlreadyPassing, List<List<Path>> ongoingAGVPaths,
                   double speedOfAGV, List<List<Integer>> bufferSet, Integer[] bufferForAGV) {
         this.graph = graph;
         this.tasks = tasks;
@@ -80,20 +73,21 @@ public class AGV_GA {
         populationGen = INITIAL_POPULATION;
         taskNumber = tasks.length;
         sizeOfAGV  = ongoingAGVPaths.size();
-        nodeSize = graph.toIntArray()[0].length;
+        nodeSize = graph[0].length;
         taskDistribution = new ArrayList<>();
         timeForFinishingTasks = new Double[sizeOfAGV];
         initiateTimeLeftForFinishingTasks();
         initializeAGVPopulation();
     }
 
-    public List<List<Integer>> singleObjectGenericAlgorithm() throws NoAGVInTheBuffer {
+    public List<List<Path>> singleObjectGenericAlgorithm() throws NoAGVInTheBuffer {
         //Record how many times the generation has been stable.
         int stableTimes = 0;
         //Record how many times it have evolved
         int evolveTimes = 1;
         // When 10 consecutive mean fitness has been stable and the looping times exceeds the min generation looping times or it
         // has reached the max generation looping times, evolution stops.
+        double[] totalFitness;
         while (true) {
             logger.info("Evolve to {} Generation", evolveTimes);
             initializeCrossoverProbability();
@@ -124,26 +118,15 @@ public class AGV_GA {
             List<List<List<Path>>> localAGVPaths = initialLocalAGVPaths(previousPopulationGen, populationGen);
 
             List<double[]> localAGVTimes = initialLocalAGVTimes(previousPopulationGen, populationGen);
-
-            //初始化每个子代每辆车的记录
-//            System.out.println("fitnessSize:"+localAGVFitness.size()+
-//                    "PathSize:"+localAGVPaths.size()+"TimesSize:"+localAGVTimes.size()+"recordSize:"+localAGVRecord.size());
-
-
-
-            //decode 任务分配 同时 decode 路径规划
             // taskSequence所有子代的任务顺序 list存每个个体的任务顺序，数组存储每个个体的任务顺序，如3，2，0，1，表示先做第3个任务
             List<Integer[]> taskSequence = new ArrayList<>();
             getTaskSequence(taskSequence);
             //Record the index of ongoing task
-            int countOfTasks;
             int countOfGeneration = 0;
-
-            logger.info("This is Generation {}", populationGen);
-
+            logger.info("Number of Generation is {}", populationGen);
             for (List<List<Path>> generationForAGVPaths : localAGVPaths) {
-                countOfTasks = 0;
-                Routing routing = new Routing(graph.toDoubleArray(), bufferSet, speedOfAGV, INITIAL_CAPACITY);
+                int countOfTasks = 0;
+                Routing routing = new Routing(graph, bufferSet, speedOfAGV, INITIAL_CAPACITY);
                 PathPlanning pathPlanning = new PathPlanning(sizeOfAGV, PENALTY_FOR_CONFLICT, speedOfAGV, distanceOfBuffer);
                 double[] currentAGVsTime = localAGVTimes.get(countOfGeneration);
                 double[] currentAGVsFitness = localAGVFitness.get(countOfGeneration);
@@ -177,10 +160,10 @@ public class AGV_GA {
                     earliestAGVPath.addAll(paths2);
                     //Adjust all the other AGVs in the buffer, to move them forward once and change the reserved and free time window corresponding
                     pathPlanning.adjustOtherAGVPositions(buffer, generationForAGVPaths, currentAGVsFitness, routing);
-                    countOfGeneration++;
-                    //If the next earliest AGV is not the same one, drive the AGV back to start of the buffer instead of being stuck in the road
+                    countOfTasks++;
+                    //If the next earliest AGV having jobs to get down is not the same one, drive the AGV back to start of the buffer instead of being stuck in the road
                     //Increase time to the moment the AGV comes to the second to the last node in the buffer.
-                    if (getEarliestAGV(currentAGVsTime) != indexOfAGV && countOfTasks < taskNumber) {
+                    if (!(getEarliestAGV(currentAGVsTime) == indexOfAGV && countOfTasks < taskNumber)) {
                         Path lastPath = paths2.get(paths2.size() - 1);
                         int startNode = lastPath.getEndNode();
                         int endNode = buffer.get(0);
@@ -198,174 +181,119 @@ public class AGV_GA {
                 countOfGeneration++;
             }
             logger.info("Path is {}", localAGVPaths);
-            //更新人口
-            logger.info("Generation after computing is {}", populationGen);
-            //计算fitness，对出现碰撞的规划增加penalty，碰撞越多penalty越大
-            //将子代和父代和在一块
+            //Put children and parents generation together
             AGVFitness.addAll(localAGVFitness);
             AGVTimes.addAll(localAGVTimes);
             AGVPaths.addAll(localAGVPaths);
-            //为了选取优秀的子代，将以距离为适应度的列表转换为每个车的1/distance的和的数列来进行轮盘法
-//            adjustFitness = new double[populationGen];
-//            for (int j = 0; j < populationGen; j++) {
-//                for (int k = 0; k < AGVIndex; k++) {
-//                    adjustFitness[j] += AGVFitness.get(j)[k];
-//                }
-//                adjustFitness[j] = 1/adjustFitness[j];
-//            }
-
-//           // 前一代的适应度变化值在第二次进化开始记录，当代的再第三代开始记录
-//            if (evolveTimes > 2) {
-//                currentMeanDistanceVariation = previousMeanDistance - currentMeanDistance;
-//            }
-//
-//
-            //方法不太适用，因为变化值都的范围太过于离散,(有碰撞)
-            //在进化到第三代时候,再用current值更新previous值之前使用逻辑控制器
-            //运用逻辑控制机器修改交叉和变异概率，这里记录下每一代的适应度变化值，用连续两代的变化值作为参数进行修改
-//            if (evolveTimes > 2) {
-//                crossoverProbability = fuzzyControlLogic.adjustCrossoverProbability(crossoverProbability,previousMeanDistanceVariation,currentMeanDistance);
-//                mutationProbability = fuzzyControlLogic.adjustMutateProbability(mutationProbability,previousMeanDistanceVariation,currentMeanDistance);
-//            }
-//
-//            System.out.println("当前距离变化" + currentMeanDistanceVariation + "  之前的距离变化" + previousMeanDistanceVariation);
-//            if (evolveTimes > 1 ) {
-//                previousMeanDistanceVariation = previousMeanDistance - currentMeanDistance;
-//            }
+            // Calculate all of the fitness for each generation. Use the 1/totalFitness to express the fitness.
+            totalFitness = new double[populationGen];
+            for (int j = 0; j < populationGen; j++) {
+                double[] fitnessForThisGeneration = AGVFitness.get(j);
+                for (int k = 0; k < sizeOfAGV; k++) {
+                    totalFitness[j] += fitnessForThisGeneration[k];
+                }
+                totalFitness[j] = 1 / totalFitness[j];
+            }
 
 
-//为了选取优秀的子代，将以距离为适应度的列表转换为每个车的1/distance的和的数列来进行轮盘法
+            //Preserve the elitist, skip mutation and crossover
+            int index = elitistPreservation(totalFitness);
+            logger.info("Best generation fitness is {}", totalFitness[index]);
+            taskDistributionElitist = taskDistribution.get(index);
 
+            AGVFitnessElitist = AGVFitness.get(index);
+            AGVTimesElitist = AGVTimes.get(index);
+            AGVPathsElitist = AGVPaths.get(index);
 
+            //Use set to choose the survival generation left
+            Set<Integer> survival = new HashSet<>();
+            for (int j = 0; j < populationGen; j++) {
+                survival.add(rouletteSelect(totalFitness));
+            }
+            //Remove the dead generation in a reverse order to avoid index chaos
+            for (int j = populationGen - 1; j >= 0; j--) {
+                if (!survival.contains(j)) {
+                    taskDistribution.remove(j);
+                    AGVFitness.remove(j);
+                    AGVPaths.remove(j);
+                    AGVTimes.remove(j);
+                }
+            }
+            //Update populationGen
+            populationGen = taskDistribution.size();
+            previousMeanFitness = currentMeanFitness;
+            totalFitness = new double[populationGen];
+            currentMeanFitness = 0;
 
-//            //采用精英保留策略，获取当前的精英，跳过选择交叉和变异直接保留且替换掉最差的子代
-//            int index = elitistPreservation(adjustFitness);
-//            logger.info("Best generation fitness is {}", adjustFitness[index]);
-//            taskDistributionElitist = taskDistribution.get(index);
-//
-//            AGVFitnessElitist = AGVFitness.get(index);
-//            AGVTimesElitist = AGVTimes.get(index);
-//            AGVPathsElitist = AGVPaths.get(index);
-
-
-
-//            //选取过程,获得存活下来的群体,用set不重复选取index
-//            Set<Integer> survival = new HashSet<Integer>();
-//            for (int j = 0; j < populationGen; j++) {
-//                survival.add(rouletteSelect(adjustFitness));
-//            }
-            //倒着删除掉没存活的染色体以及任务以及适应度
-//            for (int j = populationGen-1; j >= 0; j--) {
-//                if (!survival.contains(j)) {
-//                    taskDistribution.remove(j);
-//                    AGVFitness.remove(j);
-//                    AGVPaths.remove(j);
-//                    AGVTimes.remove(j);
-//                }
-//            }
-//            //更新populationGen
-//            populationGen = priorityChromosomeSet.size();
-//            previousMeanFitness = currentMeanFitness;
-//            previousMeanDistance = currentMeanDistance;
-//            adjustFitness = new double[populationGen];
-//            currentMeanFitness = 0;
-//            currentMeanDistance = 0;
-
-//            //再次计算适应度来看看稳定程度
-//            for (int j = 0; j < populationGen; j++) {
-//                for (int k = 0; k < AGVIndex; k++) {
-//                    adjustFitness[j] += AGVFitness.get(j)[k];
-//                }
-//                currentMeanDistance += adjustFitness[j];
-//                adjustFitness[j] = 1/adjustFitness[j];
-//                //计算当代的适应度
-//                currentMeanFitness += adjustFitness[j];
-//            }
-//            System.out.println("adjust:"+Matrix.Factory.importFromArray(adjustFitness));
-            //当前子代求平均值,以及平均距离
-            currentMeanFitness /= populationGen;
-            currentMeanDistance /= populationGen;
+            double currentTotalFitness = 0;
+            for (int j = 0; j < populationGen; j++) {
+                double[] fitnessForThisGeneration = AGVFitness.get(j);
+                for (int k = 0; k < sizeOfAGV; k++) {
+                    totalFitness[j] += fitnessForThisGeneration[k];
+                }
+                totalFitness[j] = 1 / totalFitness[j];
+                //Calculate the current fitness
+                currentTotalFitness += totalFitness[j];
+            }
+            //Current mean fitness calculation
+            currentMeanFitness = currentTotalFitness / populationGen;
             //调整变异和交叉的概率
-            logger.info("Current distance is " + currentMeanDistance + ", previous distance is "+previousMeanDistance);
-            regulateProbability(previousMeanDistance,currentMeanDistance);
+            regulateProbability(previousMeanFitness, currentMeanFitness);
 
-            logger.info("Current mutation probability is " + mutationProbability + ", current crossover probability is" + crossoverProbability);
+            logger.info("Current mutation probability is {}, current crossover probability is {}", mutationProbability, crossoverProbability);
 
-            logger.info("Current fitness is " + currentMeanFitness + ", previous fitness is " + previousMeanFitness + ", stable times are "+stableTimes);
+            logger.info("Current fitness is {}, previous fitness is {}", currentMeanFitness, previousMeanFitness);
 
-            //更新适应度稳定次数，如果不连续则重新开始计算
-            if (currentMeanFitness - previousMeanFitness < currentMeanFitness*RELATIVE_ERROR &&
-                    currentMeanFitness - previousMeanFitness > -currentMeanFitness*RELATIVE_ERROR) {
+            logger.info("Stable times are {}", stableTimes);
+            //If the variation between current and previous mean fitness is less than relative error, the model is stable.
+            if (currentMeanFitness - previousMeanFitness < currentMeanFitness * RELATIVE_ERROR &&
+                    currentMeanFitness - previousMeanFitness > -currentMeanFitness * RELATIVE_ERROR) {
                 stableTimes++;
             }
             else {
                 stableTimes = 0;
             }
 
-            logger.info("Current population is " + populationGen);
+            logger.info("Current population is {}", populationGen);
 
-            //当连续10代适应度平均值没变化且循环次数大于最小代数，或者到达最大代数收敛结束进化
             if (((stableTimes >= 10 && evolveTimes > MIN_GENERATION) || evolveTimes > MAX_GENERATION )) {
                 break;
             }
 
-
-
             evolveTimes++;
             for (double[] fitness : AGVFitness) {
-                logger.info("AGV Fitness is " + Matrix.Factory.importFromArray(fitness));
+                logger.info("AGV Fitness is {}", Matrix.Factory.importFromArray(fitness));
             }
-//            for (List<List<Integer>> generationForAGVPaths : AGVPaths) {
-//                System.out.println("当前子代的路径");
-//                for (List<Integer> path : generationForAGVPaths) {
-//                    System.out.println(path);
-//                }
-//            }
-//            break;
-
         }
 
-//        System.out.println(AGVRecords);
+        Double[] sortFitnessArray = new Double[populationGen];
+        for (int i = 0; i < populationGen; i++) {
+            sortFitnessArray[i] = totalFitness[i];
+        }
+        Arrays.sort(sortFitnessArray);
+        //Specify which generation is best
+        int maxFitnessGeneration = 0;
+        for (int i = 0; i < populationGen; i++) {
+            if (totalFitness[i] == sortFitnessArray[sortFitnessArray.length-1]) {
+                maxFitnessGeneration = i;
+            }
+        }
 
+        logger.info("Best route is {}, its fitness is {}, its time is {}", AGVPaths.get(maxFitnessGeneration), totalFitness[maxFitnessGeneration], 1 / totalFitness[maxFitnessGeneration]);
+        return AGVPaths.get(maxFitnessGeneration);
 
-
-
-
-
-
-
-
-
-//        //根据适应度函数找到最好的path
-//        Double[] sortFitnessArray = new Double[populationGen];
-//        for (int i = 0; i < populationGen; i++) {
-//            sortFitnessArray[i] = adjustFitness[i];
-//        }
-//        Array.sort(sortFitnessArray);
-//        //确定是第几个子代的路径最佳
-//        int maxFitnessGeneration = 0;
-//        for (int i = 0; i < populationGen; i++) {
-//            if (adjustFitness[i] == sortFitnessArray[sortFitnessArray.length-1]) {
-//                maxFitnessGeneration = i;
-//            }
-//        }
-//        bestGenRecords.addAll(AGVRecords.get(maxFitnessGeneration));
-////        System.out.println(AGVRecords.get(maxFitnessGeneration));
-//        logger.info("Best route is {}, its fitness is {1}, its distance is {2}", AGVPaths.get(maxFitnessGeneration), adjustFitness[maxFitnessGeneration], 1/adjustFitness[maxFitnessGeneration]);
-//        return AGVPaths.get(maxFitnessGeneration);
-        return null;
     }
 
     //找到最优的当前子代个体的索引
     private int elitistPreservation(double[] AGVFitness) {
         int size = AGVFitness.length;
-        Double[] DoubleAGVFitness = new Double[size];
+        Double[] AGVFitnessCopy = new Double[size];
         for (int i = 0; i < size; i++) {
-            DoubleAGVFitness[i] = AGVFitness[i];
+            AGVFitnessCopy[i] = AGVFitness[i];
         }
-        Arrays.sort(DoubleAGVFitness);
+        Arrays.sort(AGVFitnessCopy);
         for (int i = 0; i < size; i++) {
-            if (AGVFitness[i] == DoubleAGVFitness[size - 1]) {
+            if (AGVFitness[i] == AGVFitnessCopy[size - 1]) {
                 return i;
             }
         }
@@ -392,11 +320,11 @@ public class AGV_GA {
             List<List<Path>> generationForAGVPaths = new ArrayList<>();
             for (List<Path> path : ongoingAGVPaths) {
                 //直接浅拷贝进去，生成地址不同但是元素指向相同的AGV，不改变原有元素所以可以这么做
-                List<Path> AGV = new ArrayList<>();
+                List<Path> pathOfAGV = new ArrayList<>();
                 for (Path path1 : path) {
-                    AGV.add(path1);
+                    pathOfAGV.add(path1);
                 }
-                generationForAGVPaths.add(AGV);
+                generationForAGVPaths.add(pathOfAGV);
             }
             localAGVPaths.add(generationForAGVPaths);
         }
@@ -417,8 +345,7 @@ public class AGV_GA {
     }
 
 
-    //根据经验方程适当的改变交叉和变异的概率,这里头的适应度应该是越小越好的
-    //根据经验结果，控制crossover在0.3到0.9之间，mutate在0.1到0.4之间
+    //According to empirical function，adjust crossover rate between 0.3 and 0.9, mutate rate between 0.1 and 0.4.
     private void regulateProbability(double previousMeanFitness, double currentMeanFitness) {
         if ((previousMeanFitness/currentMeanFitness) -1 >= 0.1) {
             crossoverProbability = Math.min(crossoverProbability + 0.05,0.9);
@@ -449,36 +376,6 @@ public class AGV_GA {
             mutateProbabilityArray[i] = random.nextDouble();
         }
     }
-
-
-
-
-//    private void printErrorOnLine(int j, int k, double[][] futurePath, double ongoingPathLength, double ongoingPathLength1) {
-//        System.out.println("第"+j+"辆车和"+"第"+k+"辆车发生在线上的碰撞");
-//        System.out.println("第"+j+"辆车路径"+Matrix.Factory.importFromArray(futurePath[j])+"路径长度为"+ongoingPathLength);
-//        System.out.println("第"+k+"辆车路径"+Matrix.Factory.importFromArray(futurePath[k])+"路径长度为"+ongoingPathLength1);
-//    }
-//
-//    private void printErrorOnPoint(int j, int k, double[][] futurePath, double ongoingPathLength, double ongoingPathLength1) {
-//        System.out.println("第"+j+"辆车和"+"第"+k+"辆车发生在点上的碰撞");
-//        System.out.println("第"+j+"辆车路径"+Matrix.Factory.importFromArray(futurePath[j])+"路径长度为"+ongoingPathLength);
-//        System.out.println("第"+k+"辆车路径"+Matrix.Factory.importFromArray(futurePath[k])+"路径长度为"+ongoingPathLength1);
-//    }
-
-    //根据第k车以及所有车的路径找出该车当前路径的长度,分为buffer里头的和graph中的
-    private double getAGVOngoingPathLength(int k, double[][] futurePath) {
-        double ongoingPathLength;
-        if (bufferSet.get(bufferForAGV[k]).contains((int)futurePath[k][0])
-                && bufferSet.get(bufferForAGV[k]).contains((int)futurePath[k][1])) {
-            ongoingPathLength = distanceOfBuffer;
-        }
-        else {
-            ongoingPathLength = graph.getAsDouble((long) futurePath[k][0], (long) futurePath[k][1]);
-        }
-//        System.out.println("第"+k+"车当前运行路径："+futurePath[k][0]+" "+futurePath[k][1]);
-        return ongoingPathLength;
-    }
-
 
     // 初始化每个AGV计算还需要多长时间小车完成任务
     // 计算时间包括AGV到buffer中停靠点以及从停靠点到buffer和graph交点的前一个点的时间（后面的点需要routing所以时间不固定，无法估计）
@@ -525,7 +422,6 @@ public class AGV_GA {
         return numberOfBufferToCross * (distanceOfBuffer + CommonConstant.CROSSING_DISTANCE) / speedOfAGV;
     }
 
-
     private void initializeAGVPopulation() {
         //初始子代的建立
         //encode 任务分配
@@ -539,8 +435,6 @@ public class AGV_GA {
             taskDistribution.add(task);
         }
     }
-
-
 
     //给每个子代一个任务的序列，找到最小的数字代表的索引，其为第一个任务，这边暂时不简化逻辑，保持全部的子代都算一遍task sequence
     private void getTaskSequence(List<Integer[]> taskSequence) {
@@ -642,20 +536,21 @@ public class AGV_GA {
         for(int i = 0; i < weight.length; i++) {
             weightSum += weight[i];
         }
-        // get a random value
+        // Get a random value
         double value = randUniformPositive() * weightSum;
-        // locate the random value based on the weights
+        // Locate the random value based on the weights
         for(int i = 0; i < weight.length; i++) {
             value -= weight[i];
-            if(value < 0) return i;
+            if(value < 0)
+                return i;
         }
         // when rounding errors occur, we return the last item's index
+        logger.error("Roulette select cannot get valid value");
         return weight.length - 1;
     }
 
     // Returns a uniformly distributed double value between 0.0 and 1.0
     double randUniformPositive() {
-        // easiest implementation
         return new Random().nextDouble();
     }
 

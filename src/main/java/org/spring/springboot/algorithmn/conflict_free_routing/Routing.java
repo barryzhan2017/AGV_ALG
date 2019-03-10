@@ -66,7 +66,7 @@ public class Routing {
     }
 
     private void setCurrentTimeWindow(int nodeNumber, double leastTimeReachHere, int AGVNumber) {
-        TimeWindow currentTimeWindow = new TimeWindow(nodeNumber, 0, CommonConstant.INFINITE, AGVNumber, leastTimeReachHere);
+        TimeWindow currentTimeWindow = new TimeWindow(nodeNumber, leastTimeReachHere, CommonConstant.INFINITE, AGVNumber, leastTimeReachHere);
         currentTimeWindow.setFirstStep(true);
         this.currentTimeWindow = currentTimeWindow;
     }
@@ -113,7 +113,7 @@ public class Routing {
             paths.add(path1);
             return paths;
         }
-        TimeWindow reservedTimeWindow = new TimeWindow(nodeNumber, 0, CommonConstant.INFINITE, indexOfAGV, -1);
+        TimeWindow reservedTimeWindow = new TimeWindow(nodeNumber, leastTimeReachHere, CommonConstant.INFINITE, indexOfAGV, -1);
         //To avoid to search the current node as a possible next time window
         Queue<TimeWindow> reservedTimeWindows = reservedTimeWindowList.get(nodeNumber);
         reservedTimeWindows.remove(reservedTimeWindow);
@@ -124,10 +124,11 @@ public class Routing {
             Path path;
             TimeWindow startTimeWindow = timeWindowList.get(i);
             int startNode = startTimeWindow.getNodeNumber();
-            TimeWindow endTimeWindow = timeWindowList.get(i+1);
+            TimeWindow endTimeWindow = timeWindowList.get(i + 1);
             int endNode = endTimeWindow.getNodeNumber();
             double time;
-            if (startTimeWindow.isFirstStep()) {
+            //When it starts from buffer end edge, the time calculation should change.
+            if (startTimeWindow.isFirstStep() && startTimeWindow.getLeastTimeReachHere() == 0) {
                 time = endTimeWindow.getLeastTimeReachHere() - startTimeWindow.getLeastTimeReachHere();
             }
             else {
@@ -161,7 +162,7 @@ public class Routing {
         List<TimeWindow> occupiedTimeWindows = new ArrayList<>();
         //The time window is free and reachable.
         List<TimeWindow> possibleTimeWindows = new ArrayList<>();
-        int AGVNumber = currentTimeWindow.getAGVNumber();
+        int indexOfAGV = currentTimeWindow.getAGVNumber();
         //Easy to be removed from the free time window using path info
         currentTimeWindow.setAGVNumber(-1);
         TimeWindow headTimeWindow = currentTimeWindow;
@@ -223,7 +224,7 @@ public class Routing {
 
             int nextNodeNumber = newPath.getNextNodeNumber();
             //Generate corresponding reserved time window
-            TimeWindow newReservedTimeWindow = new TimeWindow(nodeNumber, startTime, endTime, AGVNumber, nextNodeNumber);
+            TimeWindow newReservedTimeWindow = new TimeWindow(nodeNumber, startTime, endTime, indexOfAGV, nextNodeNumber);
             Queue<TimeWindow> freeTimeWindowsForThisNode = freeTimeWindowList.get(nodeNumber);
             Queue<TimeWindow> reservedTimeWindowsForThisNode = reservedTimeWindowList.get(nodeNumber);
             freeTimeWindowsForThisNode.remove(newPath);
@@ -370,6 +371,10 @@ public class Routing {
         path[0] = -1;
         path[1] = -1;
         path[2] = -1;
+        //Don't loop when the end time window is earlier than the current one.
+        if (endTimeWindow.getStartTime() < currentTimeWindow.getStartTime()) {
+            return CommonConstant.INFINITE;
+        }
         ArrayList<Integer> incidentNodes = new ArrayList<>();// All lanes(node number) incident to node i
         for(int i = 0; i < length && i != endNode; i++){
             if (graph[endNode][i] != CommonConstant.MAX_EDGE && graph[i][endNode] != CommonConstant.MAX_EDGE) {

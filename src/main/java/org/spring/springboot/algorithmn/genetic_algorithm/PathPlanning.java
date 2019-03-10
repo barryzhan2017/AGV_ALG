@@ -98,14 +98,7 @@ public class PathPlanning {
                 Path nextPath = new Path(endPosition, nextNode, distanceOfBuffer / speedOfAGV, false);
                 path.add(nextPath);
                 int indexOfAGV = generationForAGVPaths.indexOf(path);
-//                double time = getTimeFromPath(path, speedOfAGV);
                 fitness[indexOfAGV] += (distanceOfBuffer + CommonConstant.CROSSING_DISTANCE) / speedOfAGV;
-                //Release the second to last node in buffer
-//                int secondToLastPositionInBuffer = buffer.get(buffer.size() - 2);
-                //Don't change the time window because it will not affect the algorithm
-//                if (nextNode == secondToLastPositionInBuffer) {
-//                    routing.createReservedTimeWindowForEndPosition(secondToLastPositionInBuffer, indexOfAGV, time);
-//                }
             }
         }
     }
