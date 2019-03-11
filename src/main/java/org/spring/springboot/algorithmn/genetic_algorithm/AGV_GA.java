@@ -49,16 +49,13 @@ public class AGV_GA {
     private double[] mutateProbabilityArray;
     private double currentMeanFitness = 0;
     private double previousMeanFitness = 0;
-    private final int INITIAL_POPULATION = 100;
+    private final int INITIAL_POPULATION = 50;
     private final int MIN_GENERATION = 50;
     private final int MAX_GENERATION = (int)(MIN_GENERATION*1.5);
     private final double PENALTY_FOR_CONFLICT = 99999;
     private final double RELATIVE_ERROR = 0.001;//收敛的相对误差，小于这个则表示稳定
     private final int INITIAL_CAPACITY = 30;
 
-    public AGV_GA() {
-
-    }
 
     public AGV_GA(double[][] graph, Integer[][] tasks, Double[] timeAlreadyPassing, List<List<Path>> ongoingAGVPaths,
                   double speedOfAGV, List<List<Integer>> bufferSet, Integer[] bufferForAGV) {
@@ -127,7 +124,7 @@ public class AGV_GA {
             for (List<List<Path>> generationForAGVPaths : localAGVPaths) {
                 int countOfTasks = 0;
                 Routing routing = new Routing(graph, bufferSet, speedOfAGV, INITIAL_CAPACITY);
-                PathPlanning pathPlanning = new PathPlanning(sizeOfAGV, PENALTY_FOR_CONFLICT, speedOfAGV, distanceOfBuffer);
+                PathPlanning pathPlanning = new PathPlanning(sizeOfAGV, PENALTY_FOR_CONFLICT, speedOfAGV, distanceOfBuffer, routing);
                 double[] currentAGVsTime = localAGVTimes.get(countOfGeneration);
                 double[] currentAGVsFitness = localAGVFitness.get(countOfGeneration);
                 while (countOfTasks < taskNumber) {
@@ -138,28 +135,30 @@ public class AGV_GA {
                     if (pathPlanning.isReturning(indexOfAGV)) {
                         pathPlanning.returnAGVToBuffer(indexOfAGV, buffer, earliestAGVPath, buffer.size() - 2);
                     }
+
                     int pathStartIndex = earliestAGVPath.size() - 1;
                     Path startPath = earliestAGVPath.get(pathStartIndex);
                     int numberOfTask = taskSequence.get(countOfGeneration + previousPopulationGen)[countOfTasks];
-                    //Get Path
-                    List<Path> paths1 = pathPlanning.getPath(routing, tasks[numberOfTask][0],
+                    if (numberOfTask == 0 && indexOfAGV == 0) {
+                        System.out.println("");
+                    }
+                    List<Path> paths1 = pathPlanning.getPath(tasks[numberOfTask][0],
                             startPath.getEndNode(), indexOfAGV, currentAGVsFitness, currentAGVsTime);
                     // No Feasible path, quit the task distribution
                     if (paths1.isEmpty()) {
                         break;
                     }
+
                     //Get path2
-                    List<Path> paths2 = pathPlanning.getPath(routing, tasks[numberOfTask][1],
+                    List<Path> paths2 = pathPlanning.getPath(tasks[numberOfTask][1],
                             paths1.get(paths1.size() - 1).getEndNode(), indexOfAGV, currentAGVsFitness, currentAGVsTime);
                     if (paths2.isEmpty()) {
                         break;
                     }
-                    //更新该小车的路径，不要重复了startPoint,索引从1开始
-                    //第一个点是buffer和graph的交点之前就先放入,如果是-1就结束了该路径或者到了倒数第二位，最后一位是距离
                     earliestAGVPath.addAll(paths1);
                     earliestAGVPath.addAll(paths2);
                     //Adjust all the other AGVs in the buffer, to move them forward once and change the reserved and free time window corresponding
-                    pathPlanning.adjustOtherAGVPositions(buffer, generationForAGVPaths, currentAGVsFitness, routing);
+                    pathPlanning.adjustOtherAGVPositions(buffer, generationForAGVPaths, currentAGVsFitness);
                     countOfTasks++;
                     //If the next earliest AGV having jobs to get down is not the same one, drive the AGV back to start of the buffer instead of being stuck in the road
                     //Increase time to the moment the AGV comes to the second to the last node in the buffer.
@@ -167,8 +166,10 @@ public class AGV_GA {
                         Path lastPath = paths2.get(paths2.size() - 1);
                         int startNode = lastPath.getEndNode();
                         int endNode = buffer.get(0);
-                        List<Path> pathToStartOfBuffer = pathPlanning.getPath(routing, endNode,
+                        List<Path> pathToStartOfBuffer = pathPlanning.getPath(endNode,
                                 startNode, indexOfAGV, currentAGVsFitness, currentAGVsTime);
+                        //The reserved time window to enter the buffer should be released for other AGV to pass
+                        pathPlanning.releaseNode(buffer.get(0));
                         earliestAGVPath.addAll(pathToStartOfBuffer);
                         pathPlanning.setBackingAGV(indexOfAGV);
                         int numberOfBufferToCross = buffer.size() - 2;
@@ -244,7 +245,7 @@ public class AGV_GA {
 
             logger.info("Current fitness is {}, previous fitness is {}", currentMeanFitness, previousMeanFitness);
 
-            logger.info("Stable times are {}", stableTimes);
+            logger.info("Stable times is {}", stableTimes);
             //If the variation between current and previous mean fitness is less than relative error, the model is stable.
             if (currentMeanFitness - previousMeanFitness < currentMeanFitness * RELATIVE_ERROR &&
                     currentMeanFitness - previousMeanFitness > -currentMeanFitness * RELATIVE_ERROR) {
@@ -278,10 +279,26 @@ public class AGV_GA {
                 maxFitnessGeneration = i;
             }
         }
-
+        logger.info("Last Stable times is {}", stableTimes);
         logger.info("Best route is {}, its fitness is {}, its time is {}", AGVPaths.get(maxFitnessGeneration), totalFitness[maxFitnessGeneration], 1 / totalFitness[maxFitnessGeneration]);
-        return AGVPaths.get(maxFitnessGeneration);
+        List<List<Path>> optimalPaths = AGVPaths.get(maxFitnessGeneration);
+        //Delete redundant path
+        return deleteUnnecessaryPaths(optimalPaths);
+    }
 
+    //Delete the path with same start node and end node and 0 time to travel. (unnecessary path)
+    private List<List<Path>> deleteUnnecessaryPaths(List<List<Path>> optimalPaths) {
+        List<List<Path>> adjustOptimalPaths = new ArrayList<>();
+        for (List<Path> paths : optimalPaths) {
+            List<Path> adjustPaths = new ArrayList<>();
+            for (Path path: paths) {
+                if (!(path.getTime() == 0 && path.getStartNode() == path.getEndNode())) {
+                    adjustPaths.add(path);
+                }
+            }
+            adjustOptimalPaths.add(adjustPaths);
+        }
+        return adjustOptimalPaths;
     }
 
     //找到最优的当前子代个体的索引
@@ -396,7 +413,7 @@ public class AGV_GA {
                 timeForFinishingTasks[i] = (double)0;
                 List<Path> paths = ongoingAGVPaths.get(i);
                 for (int j = 0; j < paths.size(); j++) {
-                    //该车正在回闲置位置
+                    //AGV is returning to buffer
                     timeForFinishingTasks[i] += paths.get(j).getTime() + CommonConstant.CROSSING_DISTANCE / speedOfAGV;
                 }
                 timeForFinishingTasks[i] = timeForFinishingTasks[i] - timeAlreadyPassing[i];

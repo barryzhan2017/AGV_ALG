@@ -205,14 +205,13 @@ public class Routing {
         reservedTimeWindowList.get(currentTimeWindow.getNodeNumber()).remove(currentTimeWindow);
         for (TimeWindow newPath: path) {
             int nodeNumber = newPath.getNodeNumber();
-            double startTime;
+            double startTime = newPath.getLeastTimeReachHere();
             double endTime;
-            if (newPath.isFirstStep()) {
-                startTime = newPath.getLeastTimeReachHere();
+            //Start from the buffer
+            if (newPath.isFirstStep() && newPath.getLeastTimeReachHere() == 0) {
                 endTime = CommonConstant.AGV_LENGTH / speed + startTime;
             }
             else {
-                startTime = newPath.getLeastTimeReachHere();
                 //This is the last time window in the path so the end time should be infinite
                 if (newPath.getNextNodeNumber() == -1) {
                     endTime = CommonConstant.INFINITE;
@@ -395,8 +394,8 @@ public class Routing {
                     !temp.contains(t.getNextNodeNumber())) {
                 temp.add(t.getNextNodeNumber());
                 //Find the path going to the end time window
-                for (int i = 0; i < incidentNodes.size(); i++) {
-                    TimeWindow lastTimeWindow = findLastTimeWindow(incidentNodes.get(i), t.getStartTime(), t.getAGVNumber(), reservedTimeWindowList);
+                for (Integer incidentNode: incidentNodes) {
+                    TimeWindow lastTimeWindow = findLastTimeWindow(endNode, incidentNode, t.getStartTime(), t.getAGVNumber(), reservedTimeWindowList);
                     if (lastTimeWindow != null) {
                         int lastTimeWindowStartNode = lastTimeWindow.getNodeNumber();
                         if (!temp.contains(lastTimeWindowStartNode))
@@ -488,8 +487,8 @@ public class Routing {
 
     /**
      * Find the head-on conflict by checking the other AGV with the reverse direction
-     * @param startNode
-     * @param endNode
+     * @param startNode Start node for the path checked
+     * @param endNode End node for the path checked
      * @param timeEnterPath The time the AGV has entered the edge
      * @param timeExitPath The time the AGV leaves the edge (starts to enter the crossing)
      * @return If there is no head-on conflict
@@ -527,15 +526,16 @@ public class Routing {
     /**
      * Find the Time window immediately after the end time of the ongoing AGV coming out of the node
      * by checking the specific reserved time window
-     * @param nextNode
+     * @param nextNode Node that the current time window will go
      * @param startTime The time the AGV comes out of the node
-     * @param AGVNumber
+     * @param AGVNumber Index of AGV
      * @return Next Time Window
      */
     TimeWindow findNextTimeWindow(int nextNode, double startTime, int AGVNumber, List<Queue<TimeWindow>> reservedTimeWindowList) {
         for (TimeWindow timeWindows : reservedTimeWindowList.get(nextNode)) {
             //First time window the specific AGV arrives
-            if (timeWindows.getStartTime() > startTime && timeWindows.getAGVNumber() == AGVNumber) {
+            //When it's in the buffer, the next time window start time can be equal to the current time window end time
+            if (timeWindows.getStartTime() >= startTime && timeWindows.getAGVNumber() == AGVNumber) {
                 return timeWindows;
             }
         }
@@ -545,16 +545,19 @@ public class Routing {
     /**
      * Find the Time window immediately before the time window of this ongoing AGV
      * by checking the specific reserved time window
-     * @param lastNode
+     *
+     * @param endNode Current node number
+     * @param lastNode Node that current AGV comes from
      * @param startTime The time the AGV comes out of the node
-     * @param AGVNumber
+     * @param AGVNumber Index of AGV
      * @return Next Time Window
      */
-    TimeWindow findLastTimeWindow(int lastNode, double startTime, int AGVNumber, List<Queue<TimeWindow>> reservedTimeWindowList) {
+    TimeWindow findLastTimeWindow(int endNode, int lastNode, double startTime, int AGVNumber, List<Queue<TimeWindow>> reservedTimeWindowList) {
         TimeWindow lastTimeWindow = null;
         for (TimeWindow timeWindows : reservedTimeWindowList.get(lastNode)) {
             //Last time window the specific AGV comes from
-            if (timeWindows.getStartTime() < startTime && timeWindows.getAGVNumber() == AGVNumber) {
+            if (timeWindows.getStartTime() <= startTime && timeWindows.getAGVNumber() == AGVNumber
+                    && timeWindows.getNextNodeNumber() == endNode) {
                 lastTimeWindow =  timeWindows;
             }
         }
@@ -571,8 +574,8 @@ public class Routing {
      * The crossing should be larger than the AGV length a lot.
      * So the moment will not happen. Hence the possibility to cause the catch up conflict for a quick AGV as a previously planned AGV is only limited to the
      * fact the current AGV choose the free time window after the reserved one.
-     * @param startNode
-     * @param endNode
+     * @param startNode Start node for the path checked
+     * @param endNode End node for the path checked
      * @param timeEnterPath The time the AGV has entered the edge
      * @param timeExitPath The time the AGV leaves the edge (starts to enter the crossing)
      * @return If there is no catch-up conflict
@@ -581,11 +584,11 @@ public class Routing {
         for (TimeWindow otherAGVStartTimeWindow : reservedTimeWindowList.get(startNode)) {
             //The time AGV has entered the edge
             double otherAGVStartTime;
-            int AGVNumber = otherAGVStartTimeWindow.getAGVNumber();
+            int indexOfAGV = otherAGVStartTimeWindow.getAGVNumber();
             //The other different AGV comes into the edge in the same direction
             if ((otherAGVStartTimeWindow.getNextNodeNumber() == endNode) &&
                     ((otherAGVStartTime = otherAGVStartTimeWindow.getEndTime()) != timeEnterPath)) {
-                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(endNode, otherAGVStartTime, AGVNumber, reservedTimeWindowList);
+                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(endNode, otherAGVStartTime, indexOfAGV, reservedTimeWindowList);
                 //The time AGV starts to leave the edge
                 double otherAGVEndTime = otherAGVEndTimeWindow.getStartTime();
                 //The other AGV comes before the AGV comes and leaves after the AGV leaves.
@@ -600,7 +603,7 @@ public class Routing {
             //consider the conflict generated by looping routing behavior
             else if (otherAGVStartTimeWindow.getPath()[1] == endNode && otherAGVStartTimeWindow.getPath()[2] == startNode) {
                 otherAGVStartTime = otherAGVStartTimeWindow.getEndTime();
-                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(startNode, otherAGVStartTime, AGVNumber, reservedTimeWindowList);
+                TimeWindow otherAGVEndTimeWindow = findNextTimeWindow(startNode, otherAGVStartTime, indexOfAGV, reservedTimeWindowList);
                 //The time AGV starts to leave the edge
                 double otherAGVEndTime = otherAGVEndTimeWindow.getStartTime();
                 //Enter the path when the other AGV locates the entry, conflict happens
@@ -636,7 +639,7 @@ public class Routing {
 
     /**
      * Find the node number for the node in the special graph given the node number in the buffer.
-     * @param bufferNodeNumber buffer node nuumber
+     * @param bufferNodeNumber buffer node number
      * @return graph node number
      */
     private int findGraphNumberFromBufferNumber(Integer bufferNodeNumber) {
@@ -651,19 +654,13 @@ public class Routing {
     }
 
     /**
-     * Change the reserved time window for the node in the buffer.
-     * @param secondToLastPositionInBuffer buffer node number
-     * @param indexOfAGV index of AGV
-     * @param time Time when the AGV arrives at the end edge of the last node
+     * Set the interval of the last reserved time window in this node to the time of crossing as an AGV
+     * Create corresponding free time window for this node
+     * @param bufferNodeNumber Node number of the buffer
      */
-    public void createReservedTimeWindowForEndPosition(int secondToLastPositionInBuffer, int indexOfAGV, double time) {
-        //Find the graph number in the routing
-        int graphNumber = findGraphNumberFromBufferNumber(secondToLastPositionInBuffer);
-        if (graphNumber == -1) {
-            throw new IllegalArgumentException("Buffer number does not have corresponding node number!");
-        }
+    public void releaseReservedTimeWindow(Integer bufferNodeNumber) {
         //Change the last time window to a new time window
-        Queue<TimeWindow> timeWindowQueue = reservedTimeWindowList.get(graphNumber);
+        Queue<TimeWindow> timeWindowQueue = reservedTimeWindowList.get(bufferNodeNumber);
         Queue<TimeWindow> newTimeWindowQueue = new PriorityQueue<>(initialCapacity, new TimeWindowComparator());
         TimeWindow removedTimeWindow;
         while(true) {
@@ -674,14 +671,13 @@ public class Routing {
             newTimeWindowQueue.add(removedTimeWindow);
         }
         double startTime = removedTimeWindow.getStartTime();
-        removedTimeWindow.setEndTime(startTime + (CommonConstant.CROSSING_DISTANCE + CommonConstant.AGV_LENGTH) / speed);
+        double endTime = getTimeCrossTheCrossing(startTime, speed);
+        removedTimeWindow.setEndTime(endTime);
+        TimeWindow newFreeTimeWindow = new TimeWindow(bufferNodeNumber, endTime, CommonConstant.INFINITE);
+        freeTimeWindowList.get(bufferNodeNumber).add(newFreeTimeWindow);
         newTimeWindowQueue.add(removedTimeWindow);
         //Add the new reserved time window from the newly coming AGV
-        TimeWindow newReservedTimeWindow =  new TimeWindow(graphNumber, time - CommonConstant.CROSSING_DISTANCE / speed, CommonConstant.INFINITE, indexOfAGV, time - CommonConstant.CROSSING_DISTANCE / speed);
-        newTimeWindowQueue.add(newReservedTimeWindow);
-        reservedTimeWindowList.remove(graphNumber);
-        reservedTimeWindowList.add(graphNumber, newTimeWindowQueue);
+        reservedTimeWindowList.remove(timeWindowQueue);
+        reservedTimeWindowList.add(bufferNodeNumber, newTimeWindowQueue);
     }
-
-
 }

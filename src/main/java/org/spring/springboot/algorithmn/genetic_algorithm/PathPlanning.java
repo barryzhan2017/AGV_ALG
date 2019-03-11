@@ -23,8 +23,20 @@ public class PathPlanning {
     private double penaltyForConflict;
     private double speedOfAGV;
     private double distanceOfBuffer;
+    private Routing routing;
 
-    public PathPlanning(int numberOfAGV, double penaltyForConflict, double speedOfAGV, double distanceOfBuffer) {
+    PathPlanning(int numberOfAGV, double penaltyForConflict, double speedOfAGV, double distanceOfBuffer, Routing routing) {
+        returningAGV = new boolean[numberOfAGV];
+        for (int i = 0; i < numberOfAGV; i++) {
+            returningAGV[i] = false;
+        }
+        this.penaltyForConflict = penaltyForConflict;
+        this.speedOfAGV = speedOfAGV;
+        this.distanceOfBuffer = distanceOfBuffer;
+        this.routing = routing;
+    }
+
+    PathPlanning(int numberOfAGV, double penaltyForConflict, double speedOfAGV, double distanceOfBuffer) {
         returningAGV = new boolean[numberOfAGV];
         for (int i = 0; i < numberOfAGV; i++) {
             returningAGV[i] = false;
@@ -36,7 +48,6 @@ public class PathPlanning {
 
     /**
      * Get the path of the AGV and adjust the time and fitness for them
-     * @param routing Algorithm Used for routing
      * @param endNode The terminal node the AGV wants to go
      * @param startNode The start node of AGV
      * @param indexOfAGV Number of AGV
@@ -44,10 +55,14 @@ public class PathPlanning {
      * @param currentAGVsTime Time of all AGVs
      * @return Path of the routing from start node to end node
      */
-    List<Path> getPath(Routing routing, int endNode, int startNode, int indexOfAGV,
+    List<Path> getPath(int endNode, int startNode, int indexOfAGV,
                                   double[] currentAGVsFitness, double[] currentAGVsTime) {
         List<Path> paths;
+        //Time to reach the time window. If it is idle, time should not change.
         double leastTimeGetHere = currentAGVsTime[indexOfAGV];
+        if (currentAGVsFitness[indexOfAGV] != 0) {
+            leastTimeGetHere -= CommonConstant.CROSSING_DISTANCE / speedOfAGV;
+        }
         try {
             paths = routing.getPath(startNode, leastTimeGetHere, indexOfAGV, endNode);
         }
@@ -85,9 +100,8 @@ public class PathPlanning {
      * @param buffer The path of the buffer
      * @param generationForAGVPaths Path of all the AGVs
      * @param fitness Fitness of all the AGVs
-     * @param routing Used for routing AGVs
      */
-    void adjustOtherAGVPositions(List<Integer> buffer, List<List<Path>> generationForAGVPaths, double fitness[], Routing routing) {
+    void adjustOtherAGVPositions(List<Integer> buffer, List<List<Path>> generationForAGVPaths, double fitness[]) {
         for (List<Path> path :generationForAGVPaths) {
             Path endPath = path.get(path.size() - 1);
             int endPosition = endPath.getEndNode();
@@ -164,8 +178,8 @@ public class PathPlanning {
         returningAGV[backingAGV] = true;
     }
 
-    public boolean isReturning(int AGVIndex) {
-        return returningAGV[AGVIndex];
+    public boolean isReturning(int indexOfAGV) {
+        return returningAGV[indexOfAGV];
     }
 
     /**
@@ -186,5 +200,13 @@ public class PathPlanning {
             lastPath = path;
         }
         returningAGV[indexOfAGV] = false;
+    }
+
+    /**
+     * Release the time window in this node for other AGV to cross
+     * @param bufferNodeNumber Node number of the buffer
+     */
+    public void releaseNode(Integer bufferNodeNumber) {
+        routing.releaseReservedTimeWindow(bufferNodeNumber);
     }
 }

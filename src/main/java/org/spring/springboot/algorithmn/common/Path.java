@@ -62,7 +62,16 @@ public class Path {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(startNode, endNode, time, isLoop);
+    }
+
+    @Override
+    public String toString() {
+        return "Path{" +
+                "startNode=" + startNode +
+                ", endNode=" + endNode +
+                ", time=" + time +
+                ", isLoop=" + isLoop +
+                '}';
     }
 }

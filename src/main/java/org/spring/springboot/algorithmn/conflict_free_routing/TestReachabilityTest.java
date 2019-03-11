@@ -106,6 +106,7 @@ public class TestReachabilityTest {
         assertFalse(noCatchUpConflict);
     }
 
+
     //Ongoing AGV goes to 8 from 9, the other AGV goes to 8 from 9 node and then to 4. Actual node number will be subtracted by 1.
     //The other AGV comes later and leave earlier.
     @Test
@@ -590,9 +591,9 @@ public class TestReachabilityTest {
         Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
         double timeGoThrough = routing.testReachabilityForSameNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
         assertEquals(-1, (int)path[0]);
-        assertEquals(-1, (int)path[0]);
+        assertEquals(-1, (int)path[1]);
         assertEquals(-1, (int)path[2]);
-        assertEquals(CommonConstant.INFINITE, timeGoThrough);
+        assertEquals((double) CommonConstant.INFINITE, timeGoThrough);
     }
 
     //Agv 1 starts from node 9 and loops to node 9 again, AGV 0 goes from node 8 to node 9 and backs to node 8 again. Not all paths are blocked.

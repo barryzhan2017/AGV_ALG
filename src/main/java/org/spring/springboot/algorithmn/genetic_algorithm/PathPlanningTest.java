@@ -35,9 +35,9 @@ public class PathPlanningTest {
         int endNode = 6;
         double[] fitness = {0};
         double[] time = {0};
-        PathPlanning pathPlanning = new PathPlanning(1, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH);
         Routing routing = new Routing(graph, bufferSet, CommonTestConstant.AGV_SPEED, 10);
-        List<Path> paths = pathPlanning.getPath(routing, endNode, startNode, 0, fitness, time);
+        PathPlanning pathPlanning = new PathPlanning(1, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH, routing);
+        List<Path> paths = pathPlanning.getPath(endNode, startNode, 0, fitness, time);
         assertEquals(2, paths.size());
         Path path1 = paths.get(0);
         assertEquals(205, path1.getStartNode());
@@ -61,9 +61,9 @@ public class PathPlanningTest {
         int endNode = 7;
         double[] fitness = {0};
         double[] time = {0};
-        PathPlanning pathPlanning = new PathPlanning(1, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH);
         Routing routing = new Routing(graph, bufferSet, CommonTestConstant.AGV_SPEED, 10);
-        List<Path> paths = pathPlanning.getPath(routing, endNode, startNode, 0, fitness, time);
+        PathPlanning pathPlanning = new PathPlanning(1, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH, routing);
+        List<Path> paths = pathPlanning.getPath(endNode, startNode, 0, fitness, time);
         assertEquals(1, paths.size());
         Path path1 = paths.get(0);
         assertEquals(7, path1.getStartNode());
@@ -83,12 +83,12 @@ public class PathPlanningTest {
         int endNode = 6;
         double[] fitness = {0, 0};
         double[] time = {0, 0};
-        PathPlanning pathPlanning = new PathPlanning(2, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH);
         Routing routing = new Routing(graph, bufferSet, CommonTestConstant.AGV_SPEED, 10);
-        pathPlanning.getPath(routing, endNode, startNode, 0, fitness, time);
+        PathPlanning pathPlanning = new PathPlanning(1, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH, routing);
+        pathPlanning.getPath(endNode, startNode, 0, fitness, time);
         int currentStartNode = 6;
         int currentEndNode = 7;
-        List<Path> paths = pathPlanning.getPath(routing, currentEndNode, currentStartNode, 1, fitness, time);
+        List<Path> paths = pathPlanning.getPath(currentEndNode, currentStartNode, 1, fitness, time);
         assertEquals(3, paths.size());
         Path path1 = paths.get(0);
         assertEquals(6, path1.getStartNode());
@@ -133,8 +133,8 @@ public class PathPlanningTest {
         pathForAGV2.add(currentPath1ForAGV2);
         //Actually fitness for AGV 2 should not be 0. Be 0 is for convenience.
         double[] fitness = {0, 0, 0};
-        PathPlanning pathPlanning = new PathPlanning(3, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH);
-        pathPlanning.adjustOtherAGVPositions(bufferSet.get(0), generationForAGVPath, fitness, routing);
+        PathPlanning pathPlanning = new PathPlanning(3, penalty, CommonTestConstant.AGV_SPEED, CommonConstant.BUFFER_PATH_LENGTH, routing);
+        pathPlanning.adjustOtherAGVPositions(bufferSet.get(0), generationForAGVPath, fitness);
         assertEquals(2, pathForAGV0.size());
         Path path0ForAGV0 = pathForAGV0.get(0);
         assertEquals(currentPathForAGV0, path0ForAGV0);
