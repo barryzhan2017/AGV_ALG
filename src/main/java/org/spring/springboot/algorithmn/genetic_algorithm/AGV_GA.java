@@ -5,7 +5,7 @@ import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.Path;
 import org.spring.springboot.algorithmn.conflict_free_routing.Routing;
 import org.spring.springboot.algorithmn.exception.NoAGVInTheBuffer;
-import org.ujmp.core.Matrix;
+
 
 import java.util.*;
 
@@ -127,6 +127,17 @@ public class AGV_GA {
                 PathPlanning pathPlanning = new PathPlanning(sizeOfAGV, PENALTY_FOR_CONFLICT, speedOfAGV, distanceOfBuffer, routing);
                 double[] currentAGVsTime = localAGVTimes.get(countOfGeneration);
                 double[] currentAGVsFitness = localAGVFitness.get(countOfGeneration);
+                // Set ongoing AGVs path take-up to the routing
+                for (int i = 0; i < sizeOfAGV; i++) {
+                    if (timeAlreadyPassing[i] != -1) {
+                        List<Path> path = generationForAGVPaths.get(i);
+                        routing.setCurrentPathsToTimeWindows(path, timeAlreadyPassing[i], i);
+                        //Set this ongoing AGV as the backing AGV to check later and delete the last backing path in the buffer
+                        deleteLastBufferPath(path);
+                        pathPlanning.setBackingAGV(i);
+                    }
+                }
+                routing.setFreeTimeWindow();
                 while (countOfTasks < taskNumber) {
                     int indexOfAGV = getEarliestAGV(currentAGVsTime);
                     List<Integer> buffer = bufferSet.get(bufferForAGV[indexOfAGV]);
@@ -135,20 +146,16 @@ public class AGV_GA {
                     if (pathPlanning.isReturning(indexOfAGV)) {
                         pathPlanning.returnAGVToBuffer(indexOfAGV, buffer, earliestAGVPath, buffer.size() - 2);
                     }
-
                     int pathStartIndex = earliestAGVPath.size() - 1;
                     Path startPath = earliestAGVPath.get(pathStartIndex);
                     int numberOfTask = taskSequence.get(countOfGeneration + previousPopulationGen)[countOfTasks];
-                    if (numberOfTask == 0 && indexOfAGV == 0) {
-                        System.out.println("");
-                    }
+                    logger.info("Count Of Tasks {} for AGV {}", numberOfTask, indexOfAGV);
                     List<Path> paths1 = pathPlanning.getPath(tasks[numberOfTask][0],
                             startPath.getEndNode(), indexOfAGV, currentAGVsFitness, currentAGVsTime);
                     // No Feasible path, quit the task distribution
                     if (paths1.isEmpty()) {
                         break;
                     }
-
                     //Get path2
                     List<Path> paths2 = pathPlanning.getPath(tasks[numberOfTask][1],
                             paths1.get(paths1.size() - 1).getEndNode(), indexOfAGV, currentAGVsFitness, currentAGVsTime);
@@ -168,8 +175,8 @@ public class AGV_GA {
                         int endNode = buffer.get(0);
                         List<Path> pathToStartOfBuffer = pathPlanning.getPath(endNode,
                                 startNode, indexOfAGV, currentAGVsFitness, currentAGVsTime);
-                        //The reserved time window to enter the buffer should be released for other AGV to pass
-                        pathPlanning.releaseNode(buffer.get(0));
+//                        //The reserved time window to enter the buffer should be released for other AGV to pass
+//                        pathPlanning.releaseNode(endNode);
                         earliestAGVPath.addAll(pathToStartOfBuffer);
                         pathPlanning.setBackingAGV(indexOfAGV);
                         int numberOfBufferToCross = buffer.size() - 2;
@@ -263,7 +270,7 @@ public class AGV_GA {
 
             evolveTimes++;
             for (double[] fitness : AGVFitness) {
-                logger.info("AGV Fitness is {}", Matrix.Factory.importFromArray(fitness));
+                logger.info("AGV Fitness is {}", fitness);
             }
         }
 
@@ -284,6 +291,20 @@ public class AGV_GA {
         List<List<Path>> optimalPaths = AGVPaths.get(maxFitnessGeneration);
         //Delete redundant path
         return deleteUnnecessaryPaths(optimalPaths);
+    }
+
+    private void deleteLastBufferPath(List<Path> path) {
+        int sizeOfPath = path.size();
+        for (int i = sizeOfPath - 1; i >= 0; i--) {
+            //Find the path in buffer
+            if (path.get(i).getEndNode() >= nodeSize) {
+                path.remove(i);
+            }
+            //Get out of the buffer already so break.
+            else {
+                break;
+            }
+        }
     }
 
     //Delete the path with same start node and end node and 0 time to travel. (unnecessary path)
@@ -474,21 +495,25 @@ public class AGV_GA {
     }
 
 
-    //找到最早的空闲小车,用的是局部变量不是全局的那个
-    private Integer getEarliestAGV(double[] timeForFinishingTasks) {
-        Double[] sortTimeArray = new Double[timeForFinishingTasks.length];
-        for (int i = 0; i < timeForFinishingTasks.length; i++) {
-            sortTimeArray[i] = timeForFinishingTasks[i];
-        }
+    //Find the earliest AGV that has finished the job randomly
+     Integer getEarliestAGV(double[] timeForFinishingTasks) {
+        double[] sortTimeArray = new double[timeForFinishingTasks.length];
+        System.arraycopy(timeForFinishingTasks, 0, sortTimeArray, 0, timeForFinishingTasks.length);
         Arrays.sort(sortTimeArray);
-        //找到剩余完成任务时间最少的小车
+        //Store all of the earliest AGV in a list.
+        List<Integer> possibleIndexesOfAGV = new ArrayList<>();
         for (int i = 0; i < timeForFinishingTasks.length; i++) {
             if (timeForFinishingTasks[i] == sortTimeArray[0]) {
-                return i;
+                possibleIndexesOfAGV.add(i);
             }
         }
-        //出问题
-        return -1;
+        if (possibleIndexesOfAGV.isEmpty()) {
+            return -1;
+        }
+        else {
+            int index = random.nextInt(possibleIndexesOfAGV.size());
+            return possibleIndexesOfAGV.get(index);
+        }
     }
 
     //直接生成新的个体给人口作为mutation

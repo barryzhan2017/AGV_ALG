@@ -74,13 +74,13 @@ public class PathPlanningTest {
         assertEquals(0, time[0], 0.000001);
     }
 
-    //One previous AGV 0 goes as 206--8--7. The current AGV 1 goes from 7 to 8.
+    //One previous AGV 0 goes as 206--8--7--6. The current AGV 1 goes from 7 to 8.
     //It should adjust the route as 7--6--9--8 to avoid conflict. Time and fitness should be changed correspondingly.
     @Test
     public void shouldGetPathCorrectlyFromRoutingWhenThereIsOnePreviousAGVGoingFrom206To8To7() {
         List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
         int startNode = 205;
-        int endNode = 6;
+        int endNode = 5;
         double[] fitness = {0, 0};
         double[] time = {0, 0};
         Routing routing = new Routing(graph, bufferSet, CommonTestConstant.AGV_SPEED, 10);

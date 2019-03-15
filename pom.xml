@@ -30,9 +30,22 @@
     <properties>
         <mybatis-spring-boot>1.2.0</mybatis-spring-boot>
         <mysql-connector>5.1.39</mysql-connector>
+        <junit.version>4.4</junit.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.23.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ujmp</groupId>
+            <artifactId>ujmp-core</artifactId>
+            <version>0.3.0</version>
+        </dependency>
 
         <!-- Spring Boot Web 依赖 -->
         <dependency>
@@ -61,11 +74,7 @@
             <version>${mysql-connector}</version>
         </dependency>
 
-        <!-- Junit -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>
@@ -82,166 +91,12 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
-            <scope>test</scope>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-core</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-gui</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-colt</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-commonsmath</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-complete</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-ehcache</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-ejml</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-elasticsearch</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-examples</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-hadoop</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-itext</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jackcess</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jama</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jblas</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jdbc</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jetty</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jfreechart</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jmatio</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jsch</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jsci</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jscience</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-jung</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-la4j</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-lucene</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-mail</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-mtj</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-ojalgo</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-parallelcolt</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-pdfbox</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-poi</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ujmp</groupId>
-            <artifactId>ujmp-vecmath</artifactId>
-            <version>0.3.0</version>
-        </dependency>
     </dependencies>
 </project>

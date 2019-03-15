@@ -1,0 +1,13 @@
+
+ksquid:HiddenFieldCheck"ERename "currentTimeWindow" which hides the field declared at line 21.(é¬­"8óÖ´–-
+nsquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(²âØø8óÖ´–-
+ssquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ŞÓ¨¡úÿÿÿÿ8”Ï×´–-
+bsquid:HiddenFieldCheck";Rename "endNode" which hides the field declared at line 17.(õŠàõ8”Ï×´–-
+nsquid:S3776"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(ÎôÑ8”Ï×´–-
+nsquid:S3776"RRefactor this method to reduce its Cognitive Complexity from 27 to the 15 allowed.(ÿ™şñ8óÖ´–-
+bsquid:HiddenFieldCheck";Rename "endNode" which hides the field declared at line 17.(õŠàõ8óÖ´–-
+ssquid:S3776"RRefactor this method to reduce its Cognitive Complexity from 38 to the 15 allowed.(ÉÏœ›øÿÿÿÿ8óÖ´–-
+Usquid:S2864"4Iterate over the "entrySet" instead of the "keySet".(ğÄå½ıÿÿÿÿ8”Ï×´–-
+bsquid:HiddenFieldCheck";Rename "endNode" which hides the field declared at line 17.(õŠàõ8óÖ´–-
+msquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¡»§%8”Ï×´–-
+ssquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(€ƒá–úÿÿÿÿ8Û¾üø–-

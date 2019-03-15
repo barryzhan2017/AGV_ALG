@@ -1,0 +1,33 @@
+
+<squid:S1170"!Make this final field static too.(®ò8Ó²Üş–-
+|squid:S00116"ZRename this field "AGVTimesElitist" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(íÑ«¡şÿÿÿÿ8Ó²Üş–-
+}squid:S00116"[Rename this field "INITIAL_CAPACITY" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(å¯¶şÿÿÿÿ8Ó²Üş–-
+=squid:S1170"!Make this final field static too.(óëî‘8Ó²Üş–-
+ssquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Î­ãÓıÿÿÿÿ8Ó²Üş–-
+usquid:S00116"YRename this field "MIN_GENERATION" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÇíàK8Ó²Üş–-
+isquid:S00101"MRename this class name to match the regular expression '^[A-Z][a-zA-Z0-9]*$'.(ıê¢&8Ó²Üş–-
+]squid:S1854"ARemove this useless assignment to local variable "priChromosome".(ò²É8Ó²Üş–-
+{squid:S00116"_Rename this field "PENALTY_FOR_CONFLICT" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(®ò8Ó²Üş–-
+t
+squid:S135"YReduce the total number of break and continue statements in this loop to use at most one.(ãƒÙ8Ó²Üş–-
+ysquid:S00116"\Rename this field "AGVFitnessElitist" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(üÅ—š8Ó²Üş–-
+vsquid:S00116"YRename this field "MAX_GENERATION" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Ÿ¦à¶8Ó²Üş–-
+ssquid:S00117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ºõç¤øÿÿÿÿ8Ó²Üş–-
+=squid:S1170"!Make this final field static too.(Ÿ¦à¶8Ó²Üş–-
+usquid:S2293"YReplace the type specification in this constructor call with the diamond operator ("<>").(ö©Å¬8Ó²Üş–-
+zsquid:S00116"]Rename this field "INITIAL_POPULATION" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(óëî‘8Ó²Üş–-
+Bsquid:S1170"!Make this final field static too.(âœ™Åúÿÿÿÿ8Ó²Üş–-
+psquid:S00116"SRename this field "AGVTimes" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Ñ†Õõ8Ó²Üş–-
+Y
+squid:S106"9Replace this use of System.out or System.err by a logger.(ŞÒ—üÿÿÿÿ8Ó²Üş–-
+usquid:S00116"SRename this field "AGVPaths" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(èÅâıÿÿÿÿ8Ó²Üş–-
+~squid:S1450"bRemove the "previousMeanFitness" field and declare it as a local variable in the relevant methods.(è‡ä©8Ó²Üş–-
+msquid:S3776"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(¯”—8Ó²Üş–-
+wsquid:S00116"URename this field "AGVFitness" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(İ«¦Âıÿÿÿÿ8Ó²Üş–-
+ssquid:S3776"RRefactor this method to reduce its Cognitive Complexity from 61 to the 15 allowed.(üŒ¤Àøÿÿÿÿ8Ó²Üş–-
+Bsquid:S1170"!Make this final field static too.(å¯¶şÿÿÿÿ8Ó²Üş–-
+<squid:S1170"!Make this final field static too.(ÇíàK8Ó²Üş–-
+|squid:S00116"ZRename this field "AGVPathsElitist" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(‡ŠÃ¶üÿÿÿÿ8Ó²Üş–-
+psquid:S00100"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÑÃü—üÿÿÿÿ8â¯İş–-
+{squid:S00116"YRename this field "RELATIVE_ERROR" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(âœ™Åúÿÿÿÿ8Ó²Üş–-
+Nsquid:S1481"2Remove this unused "priChromosome" local variable.(ò²É8Ó²Üş–-
