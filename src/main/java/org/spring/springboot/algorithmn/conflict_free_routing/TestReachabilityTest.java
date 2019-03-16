@@ -631,24 +631,26 @@ public class TestReachabilityTest {
     @Test
     public void shouldLoopReachabilityIsNotAvailableWhenAllPathsAreBlocked(){
         List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
-        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
-        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);
         Integer [] path = {-2,-2,-2};
 
         //AGV 1
         TimeWindow currentTimeWindow = new TimeWindow(8, 0, 7, 1, -1, 3);
         // AGV 0 and 2
-        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(1, 5, 6, 0, 8);
-        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 5, 6, 2, 8);
-        TimeWindow reservedAGVTimeWindow3 = new TimeWindow(8, 7, 8, 0, 5);
-        TimeWindow reservedAGVTimeWindow4 = new TimeWindow(8, 8, 9, 2, 3);
-        reservedAGVTimeWindow3.setLastTimeWindow(reservedAGVTimeWindow1);
-        reservedAGVTimeWindow4.setLastTimeWindow(reservedAGVTimeWindow2);
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(1, 5, 6, 0, 8, new Integer[] {1,8,-1});
+        TimeWindow reservedAGVTimeWindow3 = new TimeWindow(8, 7, 8, 0, 5, new Integer[] {8,5,8});
+        TimeWindow reservedAGVTimeWindow7 = new TimeWindow(5, 15, CommonConstant.INFINITE, 0, -1, new Integer[] {-1,-1,-1});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 5, 6, 2, 8, new Integer[] {7,8,-1});
+        TimeWindow reservedAGVTimeWindow4 = new TimeWindow(8, 8, 9, 2, 3, new Integer[] {8,3,-1});
+        TimeWindow reservedAGVTimeWindow6 = new TimeWindow(3, 15,  CommonConstant.INFINITE, 2, -1, new Integer[] {-1,-1,-1});
 
         reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow3);
         reservedTimeWindowList.get(8).add(reservedAGVTimeWindow4);
         reservedTimeWindowList.get(1).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(5).add(reservedAGVTimeWindow7);
+        reservedTimeWindowList.get(3).add(reservedAGVTimeWindow6);
 
         TimeWindow endTimeWindow = new TimeWindow(8, 10,12, -1, -1);
 
@@ -664,7 +666,46 @@ public class TestReachabilityTest {
         assertEquals(-1, (int)path[2]);
     }
 
+    //Agv1 loops at node 9，AGV0 goes 2---9-(loop at 9 to 4)--2  AGV2 goes 8---9---8. So AGV should loop at 9 (9 to 6)
+    @Test
+    public void shouldLoopReachabilityIsAvailableWhen3PathsAreBlocked(){
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<Queue<TimeWindow>> reservedTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        List<Queue<TimeWindow>> freeTimeWindowList = CommonTestConstant.initTimeWindowList(CommonTestConstant.SPECIAL_GRAPH_SIZE);;
+        Integer [] path = {-2,-2,-2};
 
+        //AGV 1
+        TimeWindow currentTimeWindow = new TimeWindow(8, 0, 7, 1, -1, 3);
+        // AGV 0 and 2
+        TimeWindow reservedAGVTimeWindow1 = new TimeWindow(1, 5, 6, 0, 8, new Integer[] {1,8,-1});
+        TimeWindow reservedAGVTimeWindow3 = new TimeWindow(8, 7, 8, 0, 8, new Integer[] {8,3,8});
+        TimeWindow reservedAGVTimeWindow5 = new TimeWindow(8, 9, 10, 0, 1, new Integer[] {8,1,-1});
+        TimeWindow reservedAGVTimeWindow7 = new TimeWindow(1, 15, CommonConstant.INFINITE, 0, -1, new Integer[] {-1,-1,-1});
+        TimeWindow reservedAGVTimeWindow2 = new TimeWindow(7, 5, 6, 2, 8, new Integer[] {7,8,-1});
+        TimeWindow reservedAGVTimeWindow4 = new TimeWindow(8, 8, 9, 2, 7, new Integer[] {8,7,-1});
+        TimeWindow reservedAGVTimeWindow6 = new TimeWindow(7, 15, CommonConstant.INFINITE, 2, -1, new Integer[] {-1,-1,-1});
+
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow2);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow3);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow4);
+        reservedTimeWindowList.get(1).add(reservedAGVTimeWindow1);
+        reservedTimeWindowList.get(8).add(reservedAGVTimeWindow5);
+        reservedTimeWindowList.get(7).add(reservedAGVTimeWindow6);
+        reservedTimeWindowList.get(1).add(reservedAGVTimeWindow7);
+
+        TimeWindow endTimeWindow = new TimeWindow(8, 10,12, -1, -1);
+
+        freeTimeWindowList.get(8).add(endTimeWindow);
+        freeTimeWindowList.get(8).add(currentTimeWindow);
+
+        Routing routing = new Routing(freeTimeWindowList, reservedTimeWindowList, -1, graph, currentTimeWindow, bufferSet, CommonTestConstant.AGV_SPEED);
+        double timeGoThrough = routing.testReachabilityForSameNode(endTimeWindow, currentTimeWindow, path, CommonTestConstant.AGV_SPEED);
+
+        assertEquals((double)10, timeGoThrough, 0.0001);
+        assertEquals(8, (int)path[0]);
+        assertEquals(5, (int)path[1]);
+        assertEquals(8, (int)path[2]);
+    }
 
 
 }

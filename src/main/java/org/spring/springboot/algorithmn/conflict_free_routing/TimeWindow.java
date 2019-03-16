@@ -9,6 +9,7 @@ public class TimeWindow {
     private double endTime;
     private int AGVNumber = -1;
     //The node the AGV goes to next
+    //It should be the same node as the start node if it is a loop.
     private int nextNodeNumber = -1;
     //The time window linked to it as a previous one
     private TimeWindow lastTimeWindow = null;
@@ -19,34 +20,51 @@ public class TimeWindow {
     //If it is first step, the time to start routing should be subtract the crossing time
     private boolean isFirstStep = false;
 
-    public TimeWindow(int nodeNumber, double startTime, double endTime) {
+    TimeWindow(int nodeNumber, double startTime, double endTime) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    public TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber) {
+    TimeWindow(int nodeNumber, double startTime, double endTime, int indexOfAGV, int nextNodeNumber, Integer[] path) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.AGVNumber = AGVNumber;
+        this.AGVNumber = indexOfAGV;
         this.nextNodeNumber = nextNodeNumber;
+        this.path = path;
+    }
+
+    TimeWindow(int nodeNumber, double startTime, double endTime, int indexOfAGV, int nextNodeNumber) {
+        this.nodeNumber = nodeNumber;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.AGVNumber = indexOfAGV;
+        this.nextNodeNumber = nextNodeNumber;
+        this.path = path;
+    }
+
+    TimeWindow(int nodeNumber, double startTime, double endTime, int indexOfAGV) {
+        this.nodeNumber = nodeNumber;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.AGVNumber = indexOfAGV;
     }
 
     //Used for initialize current time window
-    TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, double leastTimeReachHere) {
+    TimeWindow(int nodeNumber, double startTime, double endTime, int indexOfAGV, double leastTimeReachHere) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.AGVNumber = AGVNumber;
+        this.AGVNumber = indexOfAGV;
         this.leastTimeReachHere = leastTimeReachHere;
     }
 
-    TimeWindow(int nodeNumber, double startTime, double endTime, int AGVNumber, int nextNodeNumber, double leastTimeReachHere) {
+    TimeWindow(int nodeNumber, double startTime, double endTime, int indexOfAGV, int nextNodeNumber, double leastTimeReachHere) {
         this.nodeNumber = nodeNumber;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.AGVNumber = AGVNumber;
+        this.AGVNumber = indexOfAGV;
         this.nextNodeNumber = nextNodeNumber;
         this.leastTimeReachHere = leastTimeReachHere;
     }

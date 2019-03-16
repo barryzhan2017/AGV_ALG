@@ -88,8 +88,12 @@ public class PathPlanning {
         double time = 0;
         //To deal with one path to the current position, ignore the crossing time.
         for (Path path : paths) {
-            if (path.getTime() != 0) {
+            if (path.getTime() != 0 && path.getEndNode() != path.getStartNode()) {
                 time += path.getTime() + CommonConstant.CROSSING_DISTANCE / speed;
+            }
+            //AGV is lifting goods or putting goods. Not just pass the crossing.
+            else if (path.getTime() != 0 && path.getEndNode() == path.getStartNode()) {
+                time += path.getTime();
             }
         }
         return time;

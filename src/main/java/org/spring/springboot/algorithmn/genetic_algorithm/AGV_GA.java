@@ -3,6 +3,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spring.springboot.algorithmn.common.CommonConstant;
 import org.spring.springboot.algorithmn.common.Path;
+import org.spring.springboot.algorithmn.common.Record;
 import org.spring.springboot.algorithmn.conflict_free_routing.Routing;
 import org.spring.springboot.algorithmn.exception.NoAGVInTheBuffer;
 
@@ -27,13 +28,15 @@ public class AGV_GA {
     private List<List<List<Path>>> AGVPaths = new ArrayList<>(); //Path for each AGV in each generation
     private List<double[]> AGVTimes = new ArrayList<>(); //Gone time for each generation
     private List<double[]> AGVFitness = new ArrayList<>(); //Fitness for each generation
-
+    private List<List<List<Record>>> AGVRecords = new ArrayList<>(); // Record the finished tasks condition for the AGV
+    private Map<Integer, Integer> taskMap;
 
     private Double[] taskDistributionElitist;//Best generation for task elitist
     private double[] AGVFitnessElitist;
     private double[] AGVTimesElitist;
     private List<List<Path>> AGVPathsElitist;
-
+    private List<List<Record>> AGVRecordsElitist;
+    private List<List<Record>> bestRecords = new ArrayList<>();
 
     private Random random = new Random();
     private int taskNumber;
@@ -58,6 +61,29 @@ public class AGV_GA {
 
 
     public AGV_GA(double[][] graph, Integer[][] tasks, Double[] timeAlreadyPassing, List<List<Path>> ongoingAGVPaths,
+                  double speedOfAGV, List<List<Integer>> bufferSet, Integer[] bufferForAGV, Map<Integer, Integer> taskMap, double min_distance
+    , List<List<Record>> bestRecords) {
+        this.graph = graph;
+        this.tasks = tasks;
+        this.timeAlreadyPassing = timeAlreadyPassing;
+        this.ongoingAGVPaths = ongoingAGVPaths;
+        this.speedOfAGV = speedOfAGV;
+        this.bufferForAGV = bufferForAGV;
+        this.bufferSet = bufferSet;
+        this.distanceOfBuffer = min_distance;
+        populationGen = INITIAL_POPULATION;
+        taskNumber = tasks.length;
+        sizeOfAGV  = ongoingAGVPaths.size();
+        nodeSize = graph[0].length;
+        this.taskMap = taskMap;
+        taskDistribution = new ArrayList<>();
+        this.bestRecords = bestRecords;
+        timeForFinishingTasks = new Double[sizeOfAGV];
+        initiateTimeLeftForFinishingTasks();
+        initializeAGVPopulation();
+    }
+
+    AGV_GA(double[][] graph, Integer[][] tasks, Double[] timeAlreadyPassing, List<List<Path>> ongoingAGVPaths,
                   double speedOfAGV, List<List<Integer>> bufferSet, Integer[] bufferForAGV) {
         this.graph = graph;
         this.tasks = tasks;
@@ -73,8 +99,16 @@ public class AGV_GA {
         nodeSize = graph[0].length;
         taskDistribution = new ArrayList<>();
         timeForFinishingTasks = new Double[sizeOfAGV];
+        initializeTaskMap();
         initiateTimeLeftForFinishingTasks();
         initializeAGVPopulation();
+    }
+
+    private void initializeTaskMap() {
+        taskMap = new HashMap<>();
+        for (int i = 0; i < taskNumber; i++) {
+            taskMap.put(i, i);
+        }
     }
 
     public List<List<Path>> singleObjectGenericAlgorithm() throws NoAGVInTheBuffer {
@@ -102,6 +136,7 @@ public class AGV_GA {
                 AGVPaths.add(AGVPathsElitist);
                 AGVTimes.add(AGVTimesElitist);
                 AGVFitness.add(AGVFitnessElitist);
+                AGVRecords.add(AGVRecordsElitist);
             }
 
             //Update population
@@ -115,6 +150,9 @@ public class AGV_GA {
             List<List<List<Path>>> localAGVPaths = initialLocalAGVPaths(previousPopulationGen, populationGen);
 
             List<double[]> localAGVTimes = initialLocalAGVTimes(previousPopulationGen, populationGen);
+
+            List<List<List<Record>>> localAGVRecords = initialLocalAGVRecords(previousPopulationGen, populationGen);
+
             // taskSequence所有子代的任务顺序 list存每个个体的任务顺序，数组存储每个个体的任务顺序，如3，2，0，1，表示先做第3个任务
             List<Integer[]> taskSequence = new ArrayList<>();
             getTaskSequence(taskSequence);
@@ -127,6 +165,7 @@ public class AGV_GA {
                 PathPlanning pathPlanning = new PathPlanning(sizeOfAGV, PENALTY_FOR_CONFLICT, speedOfAGV, distanceOfBuffer, routing);
                 double[] currentAGVsTime = localAGVTimes.get(countOfGeneration);
                 double[] currentAGVsFitness = localAGVFitness.get(countOfGeneration);
+                List<List<Record>> currentAGVsRecord = localAGVRecords.get(countOfGeneration);
                 // Set ongoing AGVs path take-up to the routing
                 for (int i = 0; i < sizeOfAGV; i++) {
                     if (timeAlreadyPassing[i] != -1) {
@@ -149,7 +188,8 @@ public class AGV_GA {
                     int pathStartIndex = earliestAGVPath.size() - 1;
                     Path startPath = earliestAGVPath.get(pathStartIndex);
                     int numberOfTask = taskSequence.get(countOfGeneration + previousPopulationGen)[countOfTasks];
-                    logger.info("Count Of Tasks {} for AGV {}", numberOfTask, indexOfAGV);
+                    //Set records for AGV
+                    setRecord(currentAGVsRecord.get(indexOfAGV), taskMap.get(numberOfTask));
                     List<Path> paths1 = pathPlanning.getPath(tasks[numberOfTask][0],
                             startPath.getEndNode(), indexOfAGV, currentAGVsFitness, currentAGVsTime);
                     // No Feasible path, quit the task distribution
@@ -175,8 +215,9 @@ public class AGV_GA {
                         int endNode = buffer.get(0);
                         List<Path> pathToStartOfBuffer = pathPlanning.getPath(endNode,
                                 startNode, indexOfAGV, currentAGVsFitness, currentAGVsTime);
-//                        //The reserved time window to enter the buffer should be released for other AGV to pass
-//                        pathPlanning.releaseNode(endNode);
+                        if (pathToStartOfBuffer.get(0).getStartNode() == pathToStartOfBuffer.get(0).getEndNode()) {
+                            pathToStartOfBuffer.remove(0);
+                        }
                         earliestAGVPath.addAll(pathToStartOfBuffer);
                         pathPlanning.setBackingAGV(indexOfAGV);
                         int numberOfBufferToCross = buffer.size() - 2;
@@ -189,10 +230,12 @@ public class AGV_GA {
                 countOfGeneration++;
             }
             logger.info("Path is {}", localAGVPaths);
+            logger.info("Records are {}", localAGVRecords);
             //Put children and parents generation together
             AGVFitness.addAll(localAGVFitness);
             AGVTimes.addAll(localAGVTimes);
             AGVPaths.addAll(localAGVPaths);
+            AGVRecords.addAll(localAGVRecords);
             // Calculate all of the fitness for each generation. Use the 1/totalFitness to express the fitness.
             totalFitness = new double[populationGen];
             for (int j = 0; j < populationGen; j++) {
@@ -212,6 +255,7 @@ public class AGV_GA {
             AGVFitnessElitist = AGVFitness.get(index);
             AGVTimesElitist = AGVTimes.get(index);
             AGVPathsElitist = AGVPaths.get(index);
+            AGVRecordsElitist= AGVRecords.get(index);
 
             //Use set to choose the survival generation left
             Set<Integer> survival = new HashSet<>();
@@ -225,6 +269,7 @@ public class AGV_GA {
                     AGVFitness.remove(j);
                     AGVPaths.remove(j);
                     AGVTimes.remove(j);
+                    AGVRecords.remove(j);
                 }
             }
             //Update populationGen
@@ -286,11 +331,35 @@ public class AGV_GA {
                 maxFitnessGeneration = i;
             }
         }
+        List<List<Record>> finalRecords = AGVRecords.get(maxFitnessGeneration);
         logger.info("Last Stable times is {}", stableTimes);
         logger.info("Best route is {}, its fitness is {}, its time is {}", AGVPaths.get(maxFitnessGeneration), totalFitness[maxFitnessGeneration], 1 / totalFitness[maxFitnessGeneration]);
+        logger.info("Best records are {}", finalRecords);
+
+        bestRecords.addAll(finalRecords);
         List<List<Path>> optimalPaths = AGVPaths.get(maxFitnessGeneration);
         //Delete redundant path
         return deleteUnnecessaryPaths(optimalPaths);
+    }
+
+    /**
+     * Set a record for the records set from a AGV
+     * @param records AGV's records
+     * @param taskNumber Index of the task
+     */
+    private void setRecord(List<Record> records, Integer taskNumber) {
+        Record newRecord = new Record(taskNumber, 1);
+        boolean isFound = false;
+        for (Record existingRecord : records) {
+            if (existingRecord.equals(newRecord)) {
+                existingRecord.setTimes(existingRecord.getTimes() + 1);
+                isFound = true;
+                break;
+            }
+        }
+        if (!isFound) {
+            records.add(newRecord);
+        }
     }
 
     private void deleteLastBufferPath(List<Path> path) {
@@ -351,6 +420,7 @@ public class AGV_GA {
         }
        return localAGVTimes;
     }
+
     //初始化车辆路径,生成从当前的之前的子代个数到当前的种群个数个子代
     private List<List<List<Path>>> initialLocalAGVPaths(int startIndex, int endIndex) {
         List<List<List<Path>>> localAGVPaths = new ArrayList<>();
@@ -358,10 +428,7 @@ public class AGV_GA {
             List<List<Path>> generationForAGVPaths = new ArrayList<>();
             for (List<Path> path : ongoingAGVPaths) {
                 //直接浅拷贝进去，生成地址不同但是元素指向相同的AGV，不改变原有元素所以可以这么做
-                List<Path> pathOfAGV = new ArrayList<>();
-                for (Path path1 : path) {
-                    pathOfAGV.add(path1);
-                }
+                List<Path> pathOfAGV = new ArrayList<>(path);
                 generationForAGVPaths.add(pathOfAGV);
             }
             localAGVPaths.add(generationForAGVPaths);
@@ -371,7 +438,7 @@ public class AGV_GA {
 
     //初始化每一个新增的子代的每个车的适应度,生成从当前的之前的子代个数到当前的种群个数个子代
     private List<double[]> initialLocalAGVFitness(int startIndex, int endIndex) {
-        List<double[]> localAGVFitness = new ArrayList<double[]>();
+        List<double[]> localAGVFitness = new ArrayList<>();
         for (int i = startIndex; i < endIndex; i++) {
             double[] localAGVFitnessGeneration = new double[sizeOfAGV];
             for (int j = 0; j < sizeOfAGV; j++) {
@@ -380,6 +447,20 @@ public class AGV_GA {
             localAGVFitness.add(localAGVFitnessGeneration);
         }
         return localAGVFitness;
+    }
+
+
+    private List<List<List<Record>>> initialLocalAGVRecords(int startIndex, int endIndex) {
+        List<List<List<Record>>> localAGVRecords = new ArrayList<>();
+        for (int i = startIndex; i < endIndex; i++) {
+            List<List<Record>> localAGVRecordGeneration = new ArrayList<>();
+            for (int j = 0; j < sizeOfAGV; j++) {
+                List<Record> records = new ArrayList<>();
+                localAGVRecordGeneration.add(records);
+            }
+            localAGVRecords.add(localAGVRecordGeneration);
+        }
+        return localAGVRecords;
     }
 
 
@@ -465,7 +546,6 @@ public class AGV_GA {
         //encode 任务分配
         for (int i = 0; i < populationGen; i++) {
             Double[] task = new Double[taskNumber];
-            Integer[][] priChromosome = new Integer[taskNumber*2 + sizeOfAGV][nodeSize];
             for (int j = 0; j < taskNumber; j++) {
                 //j代表第几个任务，值对应哪一个车
                 task[j] = random.nextDouble();

@@ -2,6 +2,7 @@ package org.spring.springboot.algorithmn.genetic_algorithm;
 
 import org.spring.springboot.algorithmn.exception.NoAGVInTheBuffer;
 
+
 //merge sort for 2 independent array
 public class MergeSortAlgorithm {
 
@@ -15,7 +16,8 @@ public class MergeSortAlgorithm {
             length++;
         }
         if (length == -1) {
-            throw new NoAGVInTheBuffer("No AGV is returning to the buffer!");
+           System.out.println("No AGV is returning to the buffer!");
+           return;
         }
         int[] temp = new int [length + 1];
         mergesort(a, temp, 0, length, time);

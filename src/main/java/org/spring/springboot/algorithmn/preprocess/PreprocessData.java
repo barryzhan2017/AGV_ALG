@@ -1,5 +1,6 @@
 package org.spring.springboot.algorithmn.preprocess;
 
+import org.spring.springboot.algorithmn.common.Path;
 import org.ujmp.core.Matrix;
 
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.Map;
 //用来管理数据的预处理，转换json数组成为可利用的的数组或者链表
 public class PreprocessData {
 
+    private String pathStartNodeName = "startNode";
+    private String pathEndNodeName = "endNode";
 
     //按照对应顺序从json中取出对应的点和距离，点的名字从1开始构造邻接矩阵
     public Matrix createGraphFromJson (List<Map> startNode, List<Map> endNode, List<Map> distance, int numberOfNode, int max_edge) {
@@ -26,9 +29,9 @@ public class PreprocessData {
 
             Double doubleDistance = getDoubleData(distance.get(i).get("nodeDistance"));
             //注意要减1来换成java数组的index
-            graph[(Integer) startNode.get(i).get("startNode") - 1][(Integer) endNode.get(i).get("endNode") - 1]
+            graph[(Integer) startNode.get(i).get(pathStartNodeName) - 1][(Integer) endNode.get(i).get(pathEndNodeName) - 1]
                     = doubleDistance;
-            graph[(Integer) endNode.get(i).get("endNode") - 1][(Integer) startNode.get(i).get("startNode") - 1]
+            graph[(Integer) endNode.get(i).get(pathEndNodeName) - 1][(Integer) startNode.get(i).get(pathStartNodeName) - 1]
                     = doubleDistance;
         }
         return Matrix.Factory.importFromArray(graph);
@@ -42,7 +45,7 @@ public class PreprocessData {
             String pathString = (String)tasksList.get(i).get("tasks");
             //对将限定的数量的task放入tasks中
             //多少个任务
-            int taskNumber = Integer.valueOf(pathString.split(",")[2]);
+            int taskNumber = Integer.parseInt(pathString.split(",")[2]);
             for (int j = 0; j < taskNumber; j++) {
                 Integer[] subTask = new Integer[2];
                 subTask[0] = Integer.valueOf(pathString.split(",")[0])-1;
@@ -81,11 +84,11 @@ public class PreprocessData {
         return bufferForAGV;
     }
 
-    //从json中拿出每个小车的当前运行路径，或者可以拿出所有buffer的地图路径
-    public List<List<Integer>> getPaths(List<List<Map>> paths) {
+    //Get Buffer path from AGV
+    public List<List<Integer>> getBufferPaths(List<List<Map>> paths) {
         List<List<Integer>> ongoingPaths = new ArrayList<>();
         for (int i = 0; i < paths.size(); i++) {
-            List<Integer> AGVPath = new ArrayList<Integer>();
+            List<Integer> AGVPath = new ArrayList<>();
             //对每条路径增加节点循环
             for (int j = 0; j < paths.get(i).size(); j++) {
                 //前端是从1开始的节点
@@ -97,6 +100,25 @@ public class PreprocessData {
     }
 
 
+    //Get AGV path from AGV
+    public List<List<Path>> getAGVPaths(List<List<Map>> paths) {
+        List<List<Path>> ongoingPaths = new ArrayList<>();
+        for (int i = 0; i < paths.size(); i++) {
+            List<Path> AGVPath = new ArrayList<>();
+            //对每条路径增加节点循环
+            for (int j = 0; j < paths.get(i).size(); j++) {
+                //Node number starts at 1 in front end
+                int startNode = (int) paths.get(i).get(j).get(pathStartNodeName) - 1;
+                int endNode = (int) paths.get(i).get(j).get(pathEndNodeName) - 1;
+                double time = Double.parseDouble(String.valueOf(paths.get(i).get(j).get("time")));
+                int isLoop = (int) paths.get(i).get(j).get("isLoop");
+                Path path = new Path(startNode, endNode, time, isLoop == 1 );
+                AGVPath.add(path);
+            }
+            ongoingPaths.add(AGVPath);
+        }
+        return ongoingPaths;
+    }
 
     //把number类型的前端数据转化为double类型
     public Double getDoubleData(Object numberObject) {
@@ -114,14 +136,14 @@ public class PreprocessData {
     }
 
     //将真实的任务序号和生成的子任务序号建立map联系
-    public HashMap<Integer,Integer> getTaskMap(List<Map> tasks) {
+    public Map<Integer,Integer> getTaskMap(List<Map> tasks) {
         HashMap<Integer,Integer> taskMap = new HashMap<Integer, Integer>();
         int size = tasks.size();
         int currentTaskNumber = 0;
         for (int i = 0; i < size; i++) {
             String pathString = (String)tasks.get(i).get("tasks");
             //多少个任务
-            int taskNumber = Integer.valueOf(pathString.split(",")[2]);
+            int taskNumber = Integer.parseInt(pathString.split(",")[2]);
             for (int j = 0; j < taskNumber; j++) {
                 //任务编号得减一
                 taskMap.put(currentTaskNumber+j, i);

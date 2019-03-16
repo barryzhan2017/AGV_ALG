@@ -38,6 +38,8 @@ public class AGV_GA_Test {
     private Path node8To9 = new Path(7, 8, 10 / CommonTestConstant.AGV_SPEED, false);
     private Path node1To8 = new Path(0, 7, 8 / CommonTestConstant.AGV_SPEED, false);
     private Path node9To9 = new Path(8, 8, CommonConstant.CROSSING_DISTANCE / CommonTestConstant.AGV_SPEED, false);
+    private Path node8To8 = new Path(7, 7, CommonConstant.CROSSING_DISTANCE / CommonTestConstant.AGV_SPEED, false);
+
 
     private Path loopAtNode9To4 = new Path(8, 3, timeToGetInOrOutOfBuffer + reservedTime, true);
     private Path loopAtNode9To6 = new Path(8, 5, timeToGetInOrOutOfBuffer + reservedTime, true);
@@ -122,7 +124,7 @@ public class AGV_GA_Test {
         assertEquals(buffer0path4, pathsAfterComputing.get(++index));
     }
 
-    //Create two tasks(8--1, 9--8) for one AGV, Check if the path is optimal one. (4--9--8--1--2--3)
+    //Create two tasks(8--1, 9--8) for one AGV, Check if the path is optimal one. (4--9--8--8--1--2--3)
     @Test
     public void shouldTwoTasksBePerformedAsOptimalConditionByOneAGV() throws NoAGVInTheBuffer {
         List<List<Integer>> bufferSet = CommonTestConstant.getOneBufferForTestGraph2();
@@ -138,11 +140,12 @@ public class AGV_GA_Test {
         List<List<Path>> paths = geneticAlgorithmForAGV.singleObjectGenericAlgorithm();
         List<Path> pathsAfterComputing = paths.get(0);
         assertEquals(1, paths.size());
-        assertEquals(11, pathsAfterComputing.size());
+        assertEquals(12, pathsAfterComputing.size());
         int index = -1;
         assertEquals(buffer0path5, pathsAfterComputing.get(++index));
         assertEquals(node4To9, pathsAfterComputing.get(++index));
         assertEquals(node9To8, pathsAfterComputing.get(++index));
+        assertEquals(node8To8, pathsAfterComputing.get(++index));
         assertEquals(node8To1, pathsAfterComputing.get(++index));
         assertEquals(node1To2, pathsAfterComputing.get(++index));
         assertEquals(node2To3, pathsAfterComputing.get(++index));
@@ -152,7 +155,7 @@ public class AGV_GA_Test {
         assertEquals(buffer0path3, pathsAfterComputing.get(++index));
         assertEquals(buffer0path4, pathsAfterComputing.get(++index));
     }
-    
+
     //Create two tasks(3--4, 4--5) for two AGVs in the same buffer, Check if the path is optimal one.
     //AGV 0 should go for 3--4 and AGV 1 should go for 4--5
     @Test

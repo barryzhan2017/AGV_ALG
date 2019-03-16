@@ -68,10 +68,10 @@ public class PathPlanningTest {
         Path path1 = paths.get(0);
         assertEquals(7, path1.getStartNode());
         assertEquals(7, path1.getEndNode());
-        assertEquals(0, path1.getTime(), 0.000001);
+        assertEquals(CommonConstant.CROSSING_DISTANCE/ CommonTestConstant.AGV_SPEED, path1.getTime(), 0.000001);
         assertFalse(path1.isLoop());
-        assertEquals(0, fitness[0], 0.000001);
-        assertEquals(0, time[0], 0.000001);
+        assertEquals(CommonConstant.CROSSING_DISTANCE/ CommonTestConstant.AGV_SPEED, fitness[0], 0.000001);
+        assertEquals(CommonConstant.CROSSING_DISTANCE/ CommonTestConstant.AGV_SPEED, time[0], 0.000001);
     }
 
     //One previous AGV 0 goes as 206--8--7--6. The current AGV 1 goes from 7 to 8.
