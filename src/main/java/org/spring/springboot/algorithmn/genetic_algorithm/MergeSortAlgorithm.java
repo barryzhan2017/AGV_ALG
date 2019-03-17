@@ -1,12 +1,9 @@
 package org.spring.springboot.algorithmn.genetic_algorithm;
 
-import org.spring.springboot.algorithmn.exception.NoAGVInTheBuffer;
-
-
 //merge sort for 2 independent array
 public class MergeSortAlgorithm {
 
-    public static void mergesort(int[] a, double[] time) throws NoAGVInTheBuffer {
+    public static void mergesort(int[] a, double[] time){
         //To avoid sort useless elements, firstly find the length to element -1.
         int length = -1;
         for (int ele: a) {

@@ -314,9 +314,9 @@ public class AGV_GA {
             }
 
             evolveTimes++;
-            for (double[] fitness : AGVFitness) {
-                logger.info("AGV Fitness is {}", fitness);
-            }
+//            for (double[] fitness : AGVFitness) {
+//                logger.info("AGV Fitness is {}", fitness);
+//            }
         }
 
         Double[] sortFitnessArray = new Double[populationGen];

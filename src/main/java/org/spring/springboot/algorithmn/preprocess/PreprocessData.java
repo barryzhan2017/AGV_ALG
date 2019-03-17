@@ -112,7 +112,7 @@ public class PreprocessData {
                 int endNode = (int) paths.get(i).get(j).get(pathEndNodeName) - 1;
                 double time = Double.parseDouble(String.valueOf(paths.get(i).get(j).get("time")));
                 int isLoop = (int) paths.get(i).get(j).get("isLoop");
-                Path path = new Path(startNode, endNode, time, isLoop == 1 );
+                Path path = new Path(startNode, endNode, time, isLoop == 1);
                 AGVPath.add(path);
             }
             ongoingPaths.add(AGVPath);

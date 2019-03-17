@@ -289,7 +289,12 @@ public class Routing {
         if (occupiedTimeWindow.contains(possibleNextTimeWindow)) {
             return;
         }
-            //Find the least time required to go to the time window
+        //Don't loop when the time interval is too short to get through the time window
+        if (timeToReachCrossing(possibleNextTimeWindow.getStartTime(),
+                speed, possibleNextTimeWindow.getStartTime(), possibleNextTimeWindow.getEndTime()) == -1) {
+            return;
+        }
+        //Find the least time required to go to the time window
         for (TimeWindow headTimeWindow: occupiedTimeWindow) {
             double timeToReachTimeWindow = CommonConstant.INFINITE;
             Integer[] possiblePath = {-1, -1, -1};
@@ -390,32 +395,28 @@ public class Routing {
                 incidentNodes.add(i);
             }
         }
-
         //if incidentNodes is empty, then return(no lanes icident to node i)
         if(incidentNodes.isEmpty())
             return CommonConstant.INFINITE;
 
         //Find all reserve time windows between 2 free time windows and find all the lanes these cars will use to get in and out
-        ArrayList<Integer> temp = new ArrayList<>();
+        Set<Integer> temp = new HashSet<>();
         Queue<TimeWindow> reservedTimeWindowsInEndNode = reservedTimeWindowList.get(endNode);
         for(TimeWindow t : reservedTimeWindowsInEndNode) {
             //To include the loop time window, we should use the path to check the outward direction
             if (t.getStartTime() >= currentTimeWindow.getEndTime() &&
-                    t.getEndTime() <= endTimeWindow.getStartTime() &&
-                    !temp.contains(t.getPath()[1])) {
-                temp.add(t.getPath()[1]);
+                    t.getEndTime() <= endTimeWindow.getStartTime()) {
+                    temp.add(t.getPath()[1]);
                 //Find the path going to the end time window
                 for (Integer incidentNode: incidentNodes) {
                     TimeWindow lastTimeWindow = findLastTimeWindow(endNode, incidentNode, t.getStartTime(), t.getAGVNumber(), reservedTimeWindowList);
                     if (lastTimeWindow != null) {
                         int lastTimeWindowStartNode = lastTimeWindow.getNodeNumber();
-                        if (!temp.contains(lastTimeWindowStartNode))
-                            temp.add(lastTimeWindowStartNode);
+                        temp.add(lastTimeWindowStartNode);
                     }
                 }
             }
         }
-
         //Find if there are lanes available for the loop
         incidentNodes.removeAll(temp);
 

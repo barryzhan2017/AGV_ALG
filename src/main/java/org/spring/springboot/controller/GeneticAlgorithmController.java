@@ -59,7 +59,7 @@ public class GeneticAlgorithmController {
         modelMap.addAttribute("paths",pathModelMap);
         for (List<Path> pathForAGV: paths) {
             ArrayList<ModelMap> pathsForAGV = new ArrayList<>();
-            for (Path path: pathForAGV) {
+                for (Path path: pathForAGV) {
                 ModelMap modelMapForAGV = new ModelMap();
                 //Add one to index of path node for front end need
                 modelMapForAGV.addAttribute("startNode",path.getStartNode() + 1);
@@ -92,6 +92,15 @@ public class GeneticAlgorithmController {
             }
             recordModelMap.add(recordForAGV);
         }
+
+        logger.info("Graph: {}", graph);
+        logger.info("Node number: {}", map.get("numberOfGraphNode"));
+        logger.info("Tasks paths: {}", Matrix.Factory.importFromArray(tasks));
+        logger.info("Time: {}", Matrix.Factory.importFromArray(timeAlreadyPass));
+        logger.info("AGV paths: {}", pathsOfAGVs);
+        logger.info("Buffer paths: {}", bufferSet);
+        logger.info("Buffer number for AGV: {}", Matrix.Factory.importFromArray(bufferForAGV));
+        logger.info("AGV speed: {}", AGVSpeed);
         return modelMap;
     }
 

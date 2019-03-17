@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.doubleThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -39,10 +40,6 @@ public class AGV_GA_Test {
     private Path node1To8 = new Path(0, 7, 8 / CommonTestConstant.AGV_SPEED, false);
     private Path node9To9 = new Path(8, 8, CommonConstant.CROSSING_DISTANCE / CommonTestConstant.AGV_SPEED, false);
     private Path node8To8 = new Path(7, 7, CommonConstant.CROSSING_DISTANCE / CommonTestConstant.AGV_SPEED, false);
-
-
-    private Path loopAtNode9To4 = new Path(8, 3, timeToGetInOrOutOfBuffer + reservedTime, true);
-    private Path loopAtNode9To6 = new Path(8, 5, timeToGetInOrOutOfBuffer + reservedTime, true);
 
     private Path buffer0path0 = new Path(2, 101, CommonConstant.BUFFER_PATH_LENGTH / CommonTestConstant.AGV_SPEED, false);
     private Path buffer0path1 = new Path(101, 102, CommonConstant.BUFFER_PATH_LENGTH / CommonTestConstant.AGV_SPEED, false);
@@ -463,4 +460,124 @@ public class AGV_GA_Test {
         assertEquals(buffer0path3, paths2AfterComputing.get(++index));
     }
 
+
+    //Create one task(4--8) for one idle AGV in the buffer 0. AGV 1 is going as 205--8--9(slow mode)--2--1--201--202--203--204--205
+    //AGV 2 is going as 3--4--9--2--3--101--102--103--104, finally it will go 105 after planning
+    //Check if the path is optimal one.
+    //AGV 0 should go for 4--9(loop at 9 to 6)--8--1--2--3--101--102--103--104
+    @Test
+    public void shouldTwoTasksBePerformedAsOptimalConditionByTwoAGVsInDifferentBuffer2() throws NoAGVInTheBuffer {
+        List<List<Integer>> bufferSet = CommonTestConstant.getBufferForTestGraph2();
+        List<List<Path>> pathsForAGVs = new ArrayList<>();
+        List<Path> pathsForAGV0 = new ArrayList<>();
+        List<Path> pathsForAGV1 = new ArrayList<>();
+        List<Path> pathsForAGV2 = new ArrayList<>();
+        pathsForAGVs.add(pathsForAGV0);
+        pathsForAGVs.add(pathsForAGV1);
+        pathsForAGVs.add(pathsForAGV2);
+        Path path0ForAGV0 = new Path(105, 105, 0, false);
+        Path adjustNode8To9 = new Path(7, 8, reservedTime + 10 / CommonTestConstant.AGV_SPEED, false);
+
+        Path path0ForAGV1 = buffer1path5;
+        Path path1ForAGV1 = adjustNode8To9;
+        Path path2ForAGV1 = node9To2;
+        Path path3ForAGV1 = node2To1;
+        Path path4ForAGV1 = buffer1path0;
+        Path path5ForAGV1 = buffer1path1;
+        Path path6ForAGV1 = buffer1path2;
+        Path path7ForAGV1 = buffer1path3;
+        Path path8ForAGV1 = buffer1path4;
+
+
+        pathsForAGV1.add(path0ForAGV1);
+        pathsForAGV1.add(path1ForAGV1);
+        pathsForAGV1.add(path2ForAGV1);
+        pathsForAGV1.add(path3ForAGV1);
+        pathsForAGV1.add(path4ForAGV1);
+        pathsForAGV1.add(path5ForAGV1);
+        pathsForAGV1.add(path6ForAGV1);
+        pathsForAGV1.add(path7ForAGV1);
+        pathsForAGV1.add(path8ForAGV1);
+
+        Path path0ForAGV2 = node3To4;
+        Path path1ForAGV2 = node4To9;
+        Path path2ForAGV2 = node9To2;
+        Path path3ForAGV2 = node2To3;
+        Path path4ForAGV2 = buffer0path0;
+        Path path5ForAGV2 = buffer0path1;
+        Path path6ForAGV2 = buffer0path2;
+        Path path7ForAGV2 = buffer0path3;
+
+        pathsForAGV2.add(node2To3);
+        pathsForAGV2.add(path0ForAGV2);
+        pathsForAGV2.add(path1ForAGV2);
+        pathsForAGV2.add(path2ForAGV2);
+        pathsForAGV2.add(path3ForAGV2);
+        pathsForAGV2.add(path4ForAGV2);
+        pathsForAGV2.add(path5ForAGV2);
+        pathsForAGV2.add(path6ForAGV2);
+        pathsForAGV2.add(path7ForAGV2);
+
+
+        pathsForAGV0.add(path0ForAGV0);
+
+
+        Integer[] bufferForAGVs = {0, 1, 0};
+        Integer[][] tasks = {{3, 7}};
+        Double[] timeAlreadyPassed = {-1.0, 0.0, 3.0};
+        AGV_GA geneticAlgorithmForAGV = new AGV_GA(graph, tasks, timeAlreadyPassed, pathsForAGVs, CommonTestConstant.AGV_SPEED, bufferSet, bufferForAGVs);
+        List<List<Path>> paths = geneticAlgorithmForAGV.singleObjectGenericAlgorithm();
+        assertEquals(3, paths.size());
+
+        //Because there are two reserved time windows for the node, the loop takes more time.
+        double timeIntervalForTwoReservedTimeWindow = 1;
+        double timeToGetOutOfCrossing = CommonConstant.AGV_LENGTH/ CommonTestConstant.AGV_SPEED;
+        double timeToWait = 2 * reservedTime + timeIntervalForTwoReservedTimeWindow;
+        Path loopAtNode9To6 = new Path(8, 5, timeToWait + timeToGetOutOfCrossing, true);
+
+        int index = -1;
+        List<Path> paths0AfterComputing = paths.get(0);
+        assertEquals(11, paths0AfterComputing.size());
+        assertEquals(buffer0path5, paths0AfterComputing.get(++index));
+        assertEquals(node4To9, paths0AfterComputing.get(++index));
+        assertEquals(loopAtNode9To6, paths0AfterComputing.get(++index));
+        assertEquals(node9To8, paths0AfterComputing.get(++index));
+        assertEquals(node8To1, paths0AfterComputing.get(++index));
+        assertEquals(node1To2, paths0AfterComputing.get(++index));
+        assertEquals(node2To3, paths0AfterComputing.get(++index));
+        assertEquals(buffer0path0, paths0AfterComputing.get(++index));
+        assertEquals(buffer0path1, paths0AfterComputing.get(++index));
+        assertEquals(buffer0path2, paths0AfterComputing.get(++index));
+        assertEquals(buffer0path3, paths0AfterComputing.get(++index));
+
+
+
+        index = -1;
+        List<Path> paths1AfterComputing = paths.get(1);
+        assertEquals(9, paths1AfterComputing.size());
+        assertEquals(buffer1path5, paths1AfterComputing.get(++index));
+        assertEquals(adjustNode8To9, paths1AfterComputing.get(++index));
+        assertEquals(node9To2, paths1AfterComputing.get(++index));
+        assertEquals(node2To1, paths1AfterComputing.get(++index));
+        assertEquals(buffer1path0, paths1AfterComputing.get(++index));
+        assertEquals(buffer1path1, paths1AfterComputing.get(++index));
+        assertEquals(buffer1path2, paths1AfterComputing.get(++index));
+        assertEquals(buffer1path3, paths1AfterComputing.get(++index));
+        assertEquals(buffer1path4, paths1AfterComputing.get(++index));
+
+
+        index = -1;
+        List<Path> paths2AfterComputing = paths.get(2);
+        assertEquals(10, paths2AfterComputing.size());
+        assertEquals(node2To3, paths2AfterComputing.get(++index));
+        assertEquals(node3To4, paths2AfterComputing.get(++index));
+        assertEquals(node4To9, paths2AfterComputing.get(++index));
+        assertEquals(node9To2, paths2AfterComputing.get(++index));
+        assertEquals(node2To3, paths2AfterComputing.get(++index));
+        assertEquals(buffer0path0, paths2AfterComputing.get(++index));
+        assertEquals(buffer0path1, paths2AfterComputing.get(++index));
+        assertEquals(buffer0path2, paths2AfterComputing.get(++index));
+        assertEquals(buffer0path3, paths2AfterComputing.get(++index));
+        assertEquals(buffer0path4, paths2AfterComputing.get(++index));
+    }
 }
